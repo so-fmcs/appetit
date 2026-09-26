@@ -1,4 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
+import { Rat } from "lucide-react";
 
 const estiloLink = ({ isActive }) =>
   "hover:text-white hover:-translate-y-1 transition duration-300 ease-out motion-reduce:transition-none " +
@@ -11,11 +12,17 @@ function Header() {
     <header className="sticky top-0 z-50 flex items-center justify-between px-8 py-5 bg-marrom-escuro text-bege-areia">
       <Link
         to="/"
-        className="font-titulo text-3xl font-bold uppercase tracking-wide"
+        className="group flex flex-col items-center font-titulo text-3xl font-bold uppercase tracking-wide leading-none"
       >
-        Appetit
-        <span className="text-terracota" aria-hidden="true">
-          .
+        <Rat
+          aria-hidden="true"
+          className="size-6 transition duration-300 ease-out group-hover:-translate-y-1 motion-reduce:transition-none"
+        />
+        <span>
+          Appetit
+          <span className="text-terracota" aria-hidden="true">
+            .
+          </span>
         </span>
       </Link>
       <nav className="flex gap-12 font-titulo text-lg uppercase tracking-widest">
