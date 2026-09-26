@@ -9,7 +9,8 @@ const estiloLink = ({ isActive }) =>
 
 function Header() {
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between px-8 py-5 bg-marrom-escuro text-bege-areia">
+    <header className="sticky top-0 z-50">
+    <div className="flex items-center justify-between px-8 py-5 bg-marrom-escuro text-bege-areia">
       <Link
         to="/"
         className="group flex flex-col items-center font-titulo text-3xl font-bold uppercase tracking-wide leading-none"
@@ -36,6 +37,8 @@ function Header() {
           Pedidos
         </NavLink>
       </nav>
+    </div>
+    <div className="toldo h-4 border-b-4 border-marrom-escuro" aria-hidden="true"></div>
     </header>
   );
 }

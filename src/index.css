@@ -17,3 +17,11 @@ body{
   background-color: var(--color-creme);
   color: var(--color-marrom-escuro);
 }
+
+@utility toldo{
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-terracota) 0 28px,
+    var(--color-creme) 28px 56px
+  );
+}
