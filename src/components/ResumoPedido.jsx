@@ -1,6 +1,6 @@
 function ResumoPedido() {
   return (
-    <aside className="resumo-pedido m-4 bg-white">
+    <aside className="pedido-card resumo-pedido">
       <p className="resumo-pedido__rotulo">Votre commande</p>
       <h2 className="resumo-pedido__titulo">Seu pedido</h2>
 
@@ -9,7 +9,6 @@ function ResumoPedido() {
           <span>1× Ratatouille</span>
           <strong>R$ 48,00</strong>
         </li>
-
         <li className="resumo-pedido__item">
           <span>1× Gratin dauphinois</span>
           <strong>R$ 36,00</strong>

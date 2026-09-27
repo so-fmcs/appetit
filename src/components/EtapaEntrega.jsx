@@ -1,6 +1,6 @@
 function EtapaEntrega() {
   return (
-    <section className="etapa-entrega m-4 bg-white">
+    <section className="pedido-card etapa-entrega">
       <p className="etapa-entrega__rotulo">02 · LA LIVRAISON</p>
       <h2 className="etapa-entrega__titulo">Como quer receber</h2>
 
@@ -13,7 +13,7 @@ function EtapaEntrega() {
           />
           <span className="opcao-recebimento__texto">
             <strong>Retirar no bistrô</strong>
-            <span>Sem taxa. Fica pronto no horário que você escolher.</span>
+            <span>Sem taxa. Retire direto no balcão.</span>
           </span>
         </label>
 
@@ -42,17 +42,17 @@ function EtapaEntrega() {
           <input id="endereco" name="endereco" placeholder="Rua, avenida..." />
         </div>
 
-        <div className="campo">
+        <div className="campo campo--numero">
           <label htmlFor="numero">Número</label>
           <input id="numero" name="numero" />
         </div>
 
-        <div className="campo">
+        <div className="campo campo--complemento">
           <label htmlFor="complemento">Complemento (opcional)</label>
           <input id="complemento" name="complemento" placeholder="Apto, bloco..." />
         </div>
 
-        <div className="campo">
+        <div className="campo campo--bairro">
           <label htmlFor="bairro">Bairro</label>
           <input id="bairro" name="bairro" />
         </div>

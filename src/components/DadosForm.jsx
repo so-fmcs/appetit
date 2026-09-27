@@ -1,7 +1,7 @@
 function EtapaDados() {
   return (
-    <section className="etapa-dados bg-white m-4">
-      <p className="etapa-dados__rotulo">04 · VOUS</p>
+    <section className="pedido-card etapa-dados">
+      <p className="etapa-dados__rotulo">03 · VOUS</p>
       <h2 className="etapa-dados__titulo">Seus dados</h2>
 
       <div className="etapa-dados__campos">
