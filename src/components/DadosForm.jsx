@@ -1,6 +1,6 @@
 function EtapaDados() {
   return (
-    <section className="etapa-dados bg-white m-4">
+    <section className="pedido-card etapa-dados">
       <p className="etapa-dados__rotulo">04 · VOUS</p>
       <h2 className="etapa-dados__titulo">Seus dados</h2>
 

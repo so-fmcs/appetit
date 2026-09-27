@@ -1,6 +1,6 @@
 function ResumoPedido() {
   return (
-    <aside className="resumo-pedido m-4 bg-white">
+    <aside className="pedido-card resumo-pedido">
       <p className="resumo-pedido__rotulo">Votre commande</p>
       <h2 className="resumo-pedido__titulo">Seu pedido</h2>
 

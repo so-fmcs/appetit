@@ -1,6 +1,6 @@
 function EtapaEntrega() {
   return (
-    <section className="etapa-entrega m-4 bg-white">
+    <section className="pedido-card etapa-entrega">
       <p className="etapa-entrega__rotulo">02 · LA LIVRAISON</p>
       <h2 className="etapa-entrega__titulo">Como quer receber</h2>
 
