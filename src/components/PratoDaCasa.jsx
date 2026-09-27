@@ -54,17 +54,6 @@ function PratosDaCasa() {
             Pratos da casa
           </h2>
         </div>
-        {carregando && (
-          <p role="status" className="mt-8">
-            Carregando pratos...
-          </p>
-        )}
-        {erro && (
-          <p role="alert" className="mt-8">
-            Não foi possível carregar os pratos agora. Tente recarregar a
-            página.
-          </p>
-        )}
         {/* 1: o botão só aparece quando há animação */}
         <button
           type="button"
@@ -79,14 +68,23 @@ function PratosDaCasa() {
           {pausado ? "Continuar" : "Pausar"}
         </button>
       </div>
-
+      {carregando && (
+        <p role="status" className="mt-8">
+          Carregando pratos...
+        </p>
+      )}
+      {erro && (
+        <p role="alert" className="mt-8">
+          Não foi possível carregar os pratos agora. Tente recarregar a página.
+        </p>
+      )}
       {/* 2: rolagem com o dedo no celular */}
       <div className="mt-4 py-4 overflow-x-auto md:motion-safe:overflow-hidden">
         {/* 3: a animação só em tela média e sem pedido de menos movimento */}
         <div
           className={
-            "flex w-max md:motion-safe:animate-carrossel hover:[animation-play-state:paused] " +
-            (pausado ? "[animation-play-state:paused]" : "")
+            "flex w-max md:motion-safe:animate-carrossel md:motion-safe:hover:[animation-play-state:paused] " +
+            (pausado ? "md:motion-safe:[animation-play-state:paused]" : "")
           }
         >
           <div className="flex gap-6 pr-6">
