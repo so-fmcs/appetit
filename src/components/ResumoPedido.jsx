@@ -9,7 +9,6 @@ function ResumoPedido() {
           <span>1× Ratatouille</span>
           <strong>R$ 48,00</strong>
         </li>
-
         <li className="resumo-pedido__item">
           <span>1× Gratin dauphinois</span>
           <strong>R$ 36,00</strong>
