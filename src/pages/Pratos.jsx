@@ -9,7 +9,8 @@ const categorias = [
   "Vegetarianos",
   "Aves",
   "Peixes",
-  "Acompanhamento",
+  "Acompanhamentos",
+  "Sobremesas",
 ];
 
 //pratos de exemplo, apenas para montar a estrutura (é para vir da API depois)
@@ -26,21 +27,21 @@ const pratosExemplo = [
     nome: "Coq au Vin",
     categoria: "Aves",
     preco: 35,
-    imagem: "frango_grelhado.jpg",
+    imagem: "/ratatouille.jpg",
   },
   {
     id: 3,
     nome: "Lasanha",
     categoria: "Massas",
     preco: 30,
-    imagem: "lasanha.jpg",
+    imagem: "/ratatouille.jpg",
   },
   {
     id: 4,
-    nome: "Tarse Tatin",
+    nome: "Tarte Tatin",
     categoria: "Sobremesas",
     preco: 25,
-    imagem: "tarse_tatin.jpg",
+    imagem: "/ratatouille.jpg",
   },
 ];
 function Pratos() {
@@ -51,7 +52,7 @@ function Pratos() {
         <p>La carte</p>
         <h1>Nosso cardápio</h1>
         <p>
-          Classicos da cozinha francesa, feitos na hora. Escolha um prato, veja
+          Clássicos da cozinha francesa, feitos na hora. Escolha um prato, veja
           os detalhes e monte seu pedido.
         </p>
       </section>
@@ -62,7 +63,7 @@ function Pratos() {
           <label htmlFor="busca">Buscar Pratos</label>
           <div>
             <Search aria-hidden="true" />
-            <input id="busca" type="search" placeholder="Ex..: Ratatouille" />
+            <input id="busca" type="search" placeholder="Ex.: Ratatouille" />
           </div>
         </div>
         <div role="group" aria-label="Filtrar pratos por categoria">
@@ -78,6 +79,30 @@ function Pratos() {
         </div>
         <p aria-live="polite">Mostrando {pratosExemplo.length} pratos</p>
       </section>
+
+      {/* 3 lista de pratos */}
+
+      <ul>
+        {pratosExemplo.map((prato) => (
+          <li key={prato.id}>
+            <article>
+              <img src={prato.imagem} alt={prato.nome} />
+              <p>{prato.categoria}</p>
+              <h2>{prato.nome}</h2>
+              <p>R$ {prato.preco}</p>
+              <div>
+                <button type="button">Ver detalhes</button>
+                <button
+                  type="button"
+                  aria-label={`Adicionar ${prato.nome} ao pedido`}
+                >
+                  <Plus aria-hidden="true" />
+                </button>
+              </div>
+            </article>
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }
