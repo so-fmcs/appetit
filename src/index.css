@@ -11,6 +11,8 @@
 
   --font-titulo: "Oswald", sans-serif;
   --font-sans: "DM Sans", sans-serif;
+
+  --animate-carrossel: carrossel 40s linear infinite;
 }
 
 body{
@@ -24,4 +26,10 @@ body{
     var(--color-terracota) 0 28px,
     var(--color-creme) 28px 56px
   );
+}
+
+@keyframes carrossel{
+  to{
+    transform: translateX(-50%);
+  }
 }
