@@ -6,7 +6,7 @@ const estiloLink = 'hover:text-white transition duration-300'
 function Rodape() {
   return (
     <footer className="bg-marrom-escuro text-bege-areia">
-      <div className="toldo h-4" aria-hidden="true"></div>
+      <div className="toldo h-4 border-t-4 border-marrom-escuro" aria-hidden="true"></div>
 
       <div className="grid gap-10 md:grid-cols-3 max-w-6xl mx-auto px-8 py-12">
         <div>
