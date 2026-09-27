@@ -1,5 +1,5 @@
 import Hero from "../components/Hero"
-import PratosDaCasa from "../components/PratoDaCasa"
+import PratosDaCasa from "../components/PratosDaCasa"
 import NossaHistoria from "../components/NossaHistoria"
 import Rodape from "../components/Rodape"
 
