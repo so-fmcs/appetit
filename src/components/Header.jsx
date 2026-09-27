@@ -5,7 +5,7 @@ import { Rat, Menu, X } from 'lucide-react'
 const links = [
   { texto: 'Home', caminho: '/', end: true },
   { texto: 'Pratos', caminho: '/pratos' },
-  { texto: 'Pedidos', caminho: '/pedidos' },
+  { texto: 'Pedidos', caminho: '/pedido' },
 ]
 
 const estiloLink = ({ isActive }) =>
