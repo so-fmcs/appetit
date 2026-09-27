@@ -26,17 +26,21 @@ const avaliacoes = [
   { nota: 4, comentario: "Chegou quentinho e cheiroso.", cliente: "Valter" },
   { nota: 5, comentario: "Sabor de comida de vó francesa.", cliente: "Luisa" },
   { nota: 4, comentario: "Leve e cheio de ervas frescas.", cliente: "Tiago" },
-  { nota: 5, comentario: "O melhor da casa, fácil.", cliente: "Rodrigo"},
+  { nota: 5, comentario: "O melhor da casa, fácil.", cliente: "Rodrigo" },
 ];
 
 function PratosDaCasa() {
   const [pratos, setPratos] = useState([]);
   const [pausado, setPausado] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(false);
 
   useEffect(() => {
     fetch("https://www.themealdb.com/api/json/v1/1/filter.php?a=France")
       .then((resposta) => resposta.json())
-      .then((dados) => setPratos(dados.meals.slice(0, 8)));
+      .then((dados) => setPratos(dados.meals.slice(0, 8)))
+      .catch(() => setErro(true))
+      .finally(() => setCarregando(false));
   }, []);
 
   return (
@@ -50,6 +54,17 @@ function PratosDaCasa() {
             Pratos da casa
           </h2>
         </div>
+        {carregando && (
+          <p role="status" className="mt-8">
+            Carregando pratos...
+          </p>
+        )}
+        {erro && (
+          <p role="alert" className="mt-8">
+            Não foi possível carregar os pratos agora. Tente recarregar a
+            página.
+          </p>
+        )}
         {/* 1: o botão só aparece quando há animação */}
         <button
           type="button"
