@@ -26,7 +26,7 @@ function EtapaEntrega() {
           />
           <span className="opcao-recebimento__texto">
             <strong>Entrega</strong>
-            <span>Levamos até você. Taxa calculada pelo CEP.</span>
+            <span>Levamos até você. </span>
           </span>
         </label>
       </div>
