@@ -20,8 +20,8 @@ function NossaHistoria() {
   },[]);
 
   return (
-    <section className="flex flex-col md:flex-row items-center gap-12 max-w-6xl mx-auto px-8 py-20">
-      <div className="flex-1 flex justify-center">
+    <section className="flex flex-col md:flex-row items-center gap-12 max-w-7xl mx-auto px-8 py-20 md:justify-center">
+      <div>
         <figure
           ref={polaroidRef}
           className={"bg-white p-3 shadow-lg transition duration-700 ease-out hover:rotate-0 motion-reduce:transition-none " + (apareceu ? "-rotate-2" : "rotate-6")
@@ -30,16 +30,16 @@ function NossaHistoria() {
           <img
             src="/chefe.jpg"
             alt="Chef Bimmel preparando um prato na cozinha do restaurante"
-            className="w-72 h-80 object-cover"
+            className="w-72 h-80 xl:w-80 xl:h-96 object-cover"
           />
           <figcaption className="mt-3 mb-1 text-center text-sm italic">Chef Bimmel, na cozinha do Appetit</figcaption>
         </figure>
       </div>
 
-      <div className="flex-1">
+      <div className="max-w-xl">
         <p className="font-titulo text-sm uppercase tracking-widest text-verde-oliva">Notre histoire</p>
-        <h2 className="font-titulo text-4xl font-bold uppercase">Nossa história</h2>
-        <p className="mt-4 text-lg">
+        <h2 className="font-titulo text-4xl font-bold uppercase xl:text-5xl">Nossa história</h2>
+        <p className="mt-4 text-lg xl:text-xl">
           O Appetit nasceu quando o chef Bimmel trocou Lyon pelo Sul do Brasil e trouxe na bagagem as receitas da avó.
         </p>
         <p className="mt-4">

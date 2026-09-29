@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { Rat, Menu, X } from 'lucide-react'
 
 const links = [
-  { texto: 'Home', caminho: '/', end: true },
+  { texto: 'Início', caminho: '/', end: true },
   { texto: 'Pratos', caminho: '/pratos' },
   { texto: 'Pedidos', caminho: '/pedido' },
 ]
