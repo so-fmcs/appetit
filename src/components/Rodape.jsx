@@ -8,7 +8,7 @@ function Rodape() {
     <footer className="bg-marrom-escuro text-bege-areia">
       <div className="toldo h-4 border-t-4 border-marrom-escuro" aria-hidden="true"></div>
 
-      <div className="grid gap-10 md:grid-cols-3 max-w-6xl mx-auto px-8 py-12">
+      <div className="grid gap-10 md:grid-cols-3 max-w-7xl mx-auto px-8 py-12">
         <div>
           <p className="font-titulo text-3xl font-bold uppercase tracking-wide">
             Appetit<span className="text-terracota" aria-hidden="true">.</span>
@@ -23,7 +23,7 @@ function Rodape() {
         </address>
 
         <nav aria-label="Rodapé" className="flex flex-col gap-2 font-titulo uppercase tracking-widest">
-          <Link to="/" className={estiloLink}>Home</Link>
+          <Link to="/" className={estiloLink}>Início</Link>
           <Link to="/pratos" className={estiloLink}>Pratos</Link>
           <Link to="/pedidos" className={estiloLink}>Pedidos</Link>
           <a href="https://www.instagram.com" target="_blank" rel="noreferrer" className={estiloLink}>Instagram</a>
