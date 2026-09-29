@@ -1,33 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-
+import { Flower2 } from "lucide-react";
 
 const flores = [
-    'size-5 rounded-full bg-terracota',
-    'size-4 mt-1 rounded-full bg-verde-oliva',
-    'size-5 rounded-full bg-terracota',
-    'size-4 mt-1 rounded-full bg-verde-oliva',
-    'size-5 rounded-full bg-terracota',
-    'size-4 mt-1 rounded-full bg-verde-oliva',
-]
+  "text-terracota",
+  "text-verde-oliva",
+  "text-terracota",
+  "text-verde-oliva",
+  "text-terracota",
+  "text-verde-oliva",
+];
 
 function Hero() {
-
   const [aberta, setAberta] = useState(false);
 
-  useEffect(()=>{
+  useEffect(() => {
     const abrir = () => setAberta(true);
 
     window.addEventListener("scroll", abrir, { once: true });
 
-    const tempo = setTimeout (abrir, 2000);
+    const tempo = setTimeout(abrir, 2000);
 
-    return () =>{
+    return () => {
       window.removeEventListener("scroll", abrir);
       clearTimeout(tempo);
     };
-  },[]);
+  }, []);
 
   return (
     <section className="flex flex-col md:flex-row items-center gap-10 max-w-6xl mx-auto px-8 py-16">
@@ -51,42 +49,59 @@ function Hero() {
       </div>
       <div className="flex-1 flex flex-col items-center">
         <div className="relative w-72 h-96 border-[12px] border-madeira rounded-t-full overflow-hidden">
-            <img
+          <img
             src="/ratatouille.jpg"
             alt="Ratatouille com legumes em camadas, servido em prato de cerâmica"
             className="w-full h-full object-cover"
-            />
+          />
 
-            <div
+          <div
             aria-hidden="true"
             className={
-              "absolute inset-y-0 left-0 w-1/2 bg-[repeating-linear-gradient(0deg,var(--color-madeira)_0_10px,var(--color-marrom-escuro)_10px_12px)] transition-transform duration-1000 ease-out motion-reduce:hidden " + 
+              "absolute inset-y-0 left-0 w-1/2 bg-[repeating-linear-gradient(0deg,var(--color-madeira)_0_10px,var(--color-marrom-escuro)_10px_12px)] transition-transform duration-1000 ease-out motion-reduce:hidden " +
               (aberta ? "-translate-x-full" : "translate-x-0")
             }
-            ></div>
+          ></div>
 
-            <div
+          <div
             aria-hidden="true"
             className={
-              "absolute inset-y-0 right-0 w-1/2 bg-[repeating-linear-gradient(0deg,var(--color-madeira)_0_10px,var(--color-marrom-escuro)_10px_12px)] transition-transform duration-1000 ease-out motion-reduce:hidden " + 
+              "absolute inset-y-0 right-0 w-1/2 bg-[repeating-linear-gradient(0deg,var(--color-madeira)_0_10px,var(--color-marrom-escuro)_10px_12px)] transition-transform duration-1000 ease-out motion-reduce:hidden " +
               (aberta ? "translate-x-full" : "translate-x-0")
             }
-            ></div>
+          ></div>
 
-
-            <div className="absolute inset-y-0 left-1/2 w-2 -translate-x-1/2 bg-madeira" aria-hidden="true"></div>
-            <div className="absolute inset-x-0 top-1/2 h-2 bg-madeira" aria-hidden="true"></div>
+          <div
+            className="absolute inset-y-0 left-1/2 w-2 -translate-x-1/2 bg-madeira"
+            aria-hidden="true"
+          ></div>
+          <div
+            className="absolute inset-x-0 top-1/2 h-2 bg-madeira"
+            aria-hidden="true"
+          ></div>
         </div>
 
-        <div className="w-80 h-4 rounded-sm bg-marrom-escuro" aria-hidden="true"></div>
-        <div className="relative w-72 h-9 rounded-b-md bg-madeira" aria-hidden="true">
-            <div className="absolute -top-3 inset-x-3 flex justify-between">
-                {flores.map((classes, i) =>(
-                    <span key={i} className={classes}></span>
-                ))}
-            </div>
+        <div
+          className="w-80 h-4 rounded-sm bg-marrom-escuro"
+          aria-hidden="true"
+        ></div>
+        <div
+          className="relative w-72 h-9 rounded-b-md bg-madeira"
+          aria-hidden="true"
+        >
+          <div className="absolute -top-6 inset-x-3 flex justify-between">
+            {flores.map((cor, i) => (
+              <Flower2
+                key={i}
+                aria-hidden="true"
+                className={
+                  cor + " size-7 motion-safe:animate-balanca origin-bottom"
+                }
+                style={{ animationDelay: `${i * 0.3}s` }}
+              />
+            ))}
+          </div>
         </div>
-        
       </div>
     </section>
   );
