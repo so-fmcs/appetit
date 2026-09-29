@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
 
 
 const flores = [
@@ -11,6 +13,22 @@ const flores = [
 ]
 
 function Hero() {
+
+  const [aberta, setAberta] = useState(false);
+
+  useEffect(()=>{
+    const abrir = () => setAberta(true);
+
+    window.addEventListener("scroll", abrir, { once: true });
+
+    const tempo = setTimeout (abrir, 2000);
+
+    return () =>{
+      window.removeEventListener("scroll", abrir);
+      clearTimeout(tempo);
+    };
+  },[]);
+
   return (
     <section className="flex flex-col md:flex-row items-center gap-10 max-w-6xl mx-auto px-8 py-16">
       <div className="flex-1">
@@ -38,6 +56,23 @@ function Hero() {
             alt="Ratatouille com legumes em camadas, servido em prato de cerâmica"
             className="w-full h-full object-cover"
             />
+
+            <div
+            aria-hidden="true"
+            className={
+              "absolute inset-y-0 left-0 w-1/2 bg-[repeating-linear-gradient(0deg,var(--color-madeira)_0_10px,var(--color-marrom-escuro)_10px_12px)] transition-transform duration-1000 ease-out motion-reduce:hidden " + 
+              (aberta ? "-translate-x-full" : "translate-x-0")
+            }
+            ></div>
+
+            <div
+            aria-hidden="true"
+            className={
+              "absolute inset-y-0 right-0 w-1/2 bg-[repeating-linear-gradient(0deg,var(--color-madeira)_0_10px,var(--color-marrom-escuro)_10px_12px)] transition-transform duration-1000 ease-out motion-reduce:hidden " + 
+              (aberta ? "translate-x-full" : "translate-x-0")
+            }
+            ></div>
+
 
             <div className="absolute inset-y-0 left-1/2 w-2 -translate-x-1/2 bg-madeira" aria-hidden="true"></div>
             <div className="absolute inset-x-0 top-1/2 h-2 bg-madeira" aria-hidden="true"></div>
