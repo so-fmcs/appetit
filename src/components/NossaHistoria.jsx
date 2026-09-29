@@ -9,13 +9,9 @@ function NossaHistoria() {
   useEffect(() => {
     const vigia = new IntersectionObserver(
       ([entrada]) => {
-        if (entrada.isIntersecting) {
-          setApareceu(true);
-          vigia.disconnect();
-        }
+        setApareceu(entrada.isIntersecting);
       },
-
-      { threshold: 0.5 }
+      {threshold: 0.5}
     );
 
     vigia.observe(polaroidRef.current);
