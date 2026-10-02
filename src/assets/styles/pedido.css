@@ -1344,3 +1344,27 @@ fieldset.pedido-secoes {
     padding: 1rem;
   }
 }
+
+/* O grid não deve sobrescrever a ocultação dos campos na retirada. */
+.etapa-entrega__endereco[hidden] {
+  display: none;
+}
+
+.etapa-entrega__retirada {
+  padding: 0.85rem;
+  border: 1px solid #e5d9cd;
+  border-radius: 8px;
+  background: #faf7f3;
+  color: #53473b;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.etapa-entrega__retirada address {
+  margin-top: 0.3rem;
+  font-style: normal;
+}
+
+.etapa-entrega__retirada p {
+  margin: 0.35rem 0 0;
+}

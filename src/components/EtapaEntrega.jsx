@@ -1,4 +1,5 @@
 import ErroCampo from "./ErroCampo";
+import { enderecoRestaurante } from "../data/restaurante";
 
 function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) {
   const entregaSelecionada = tipoRecebimento === "entrega";
@@ -45,7 +46,17 @@ function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) 
 
       <ErroCampo campo="tipo-recebimento" mensagem={erros["tipo-recebimento"]} />
 
-      <div className="etapa-entrega__endereco">
+      {/* A retirada mostra o endereço compartilhado com o rodapé. */}
+      {tipoRecebimento === "retirada" && (
+        <div className="etapa-entrega__retirada" role="status">
+          <strong>Endereço para retirada</strong>
+          <address>{enderecoRestaurante}</address>
+          <p>Retire seu pedido diretamente no balcão, sem taxa de entrega.</p>
+        </div>
+      )}
+
+      {/* Ocultar preserva os valores caso a pessoa volte para entrega. */}
+      <div className="etapa-entrega__endereco" hidden={!entregaSelecionada}>
         <div className="campo campo--cep">
           <label htmlFor="cep">CEP</label>
           <input
