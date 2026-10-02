@@ -1,8 +1,10 @@
 import { useRef, useState } from "react";
-import { ArrowRight, Minus, Plus, Trash2, Truck } from "lucide-react";
+import { ArrowRight, Truck } from "lucide-react";
 import EtapaDados from "../components/DadosForm";
 import EtapaEntrega from "../components/EtapaEntrega";
 import HeaderPedido from "../components/HeaderPedido";
+import PratoItem from "../components/PratoItem";
+import ModalPratos from "../components/ModalPratos";
 import { pratos } from "../data/pratos";
 import "../assets/styles/pedido.css";
 import { validarPedido } from "../utils/validarPedido";
@@ -22,7 +24,7 @@ function moeda(valor) {
 }
 
 function Pedido() {
-  const pratosPedido = pratosExemplo;
+  const [pratosPedido, setPratosPedido] = useState(() => pratosExemplo);
   const [tipoRecebimento, setTipoRecebimento] = useState("entrega");
   const [mensagemValidacao, setMensagemValidacao] = useState("");
   const [erros, setErros] = useState({});
@@ -30,6 +32,7 @@ function Pedido() {
   const [statusEnvio, setStatusEnvio] = useState("ocioso");
   const [confirmacao, setConfirmacao] = useState(null);
   const formularioRef = useRef(null);
+  const modalPratosRef = useRef(null);
   const envioEmAndamento = useRef(false);
   const bloqueado = statusEnvio === "enviando" || statusEnvio === "sucesso";
   const textoConfirmar = statusEnvio === "enviando"
@@ -45,6 +48,50 @@ function Pedido() {
     (total, prato) => total + prato.preco * prato.quantidade,
     0,
   );
+
+  function abrirCardapio() {
+    if (bloqueado || modalPratosRef.current.open) return;
+    // O diálogo nativo mantém o foco no modal e torna o fundo inativo.
+    modalPratosRef.current.showModal();
+  }
+
+  function adicionarPrato(id) {
+    if (bloqueado) return;
+    const prato = pratos.find((item) => item.id === id);
+    if (!prato) return;
+    setMensagemValidacao("");
+    setStatusEnvio("ocioso");
+    setPratosPedido((atuais) => {
+      // Verifica o estado mais recente para evitar entradas duplicadas.
+      const jaSelecionado = atuais.some((item) => item.id === id);
+      return jaSelecionado
+        ? atuais.map((item) => item.id === id
+          ? { ...item, quantidade: item.quantidade + 1 }
+          : item,
+        )
+        : [...atuais, { ...prato, quantidade: 1 }];
+    });
+  }
+
+  function alterarQuantidade(id, variacao) {
+    if (bloqueado) return;
+    setMensagemValidacao("");
+    setStatusEnvio("ocioso");
+    setPratosPedido((atuais) =>
+      atuais.map((prato) =>
+        prato.id === id
+          ? { ...prato, quantidade: Math.max(0, prato.quantidade + variacao) }
+          : prato,
+      ).filter((prato) => prato.quantidade > 0),
+    );
+  }
+
+  function removerPrato(id) {
+    if (bloqueado) return;
+    setMensagemValidacao("");
+    setStatusEnvio("ocioso");
+    setPratosPedido((atuais) => atuais.filter((prato) => prato.id !== id));
+  }
 
   function lerErros(formulario) {
     // Cada atributo name vira uma chave no objeto de dados.
@@ -122,6 +169,7 @@ function Pedido() {
 
   function iniciarNovoPedido() {
     formularioRef.current?.reset();
+    setPratosPedido(pratosExemplo.map((prato) => ({ ...prato })));
     setTipoRecebimento("entrega");
     setErros({});
     setTentouConfirmar(false);
@@ -149,44 +197,34 @@ function Pedido() {
             <span>01 · VOTRE SÉLECTION</span>
             <h2>Pratos escolhidos</h2>
           </div>
+          {pratosPedido.length === 0 && (
+            <p className="pedido-selecao-vazia" role="status">
+              Seu pedido está vazio. Clique em “Adicionar pratos” para começar.
+            </p>
+          )}
           {pratosPedido.map((prato) => (
             <div key={prato.id} className="mb-4">
-              <article className="prato-item prato-item--selecionado">
-                <img
-                  src={prato.imagem}
-                  alt={prato.nome}
-                  onError={(evento) => {
-                    evento.currentTarget.onerror = null;
-                    evento.currentTarget.src = "/ratatouille.jpg";
-                  }}
-                />
-                <div className="prato-item__info">
-                  <h3>{prato.nome}</h3>
-                  <p>{prato.descricao}</p>
-                </div>
-                <div className="preco-quantidade">
-                  <span className="prato-item__preco">{moeda(prato.preco)}</span>
-                  <div className="quantidade">
-                    <button type="button" disabled aria-label={`Diminuir ${prato.nome}`}>
-                      <Minus aria-hidden="true" />
-                    </button>
-                    <span>{prato.quantidade}</span>
-                    <button type="button" disabled aria-label={`Aumentar ${prato.nome}`}>
-                      <Plus aria-hidden="true" />
-                    </button>
-                  </div>
-                  <button
-                    className="prato-item__remover"
-                    type="button"
-                    disabled
-                    aria-label={`Remover ${prato.nome}`}
-                  >
-                    <Trash2 aria-hidden="true" />
-                  </button>
-                </div>
-              </article>
+              <PratoItem
+                prato={prato}
+                quantidade={prato.quantidade}
+                onAlterarQuantidade={alterarQuantidade}
+                onRemover={removerPrato}
+              />
             </div>
           ))}
+
+          <div className="pedido-cardapio__cabecalho">
+            <h3>Adicionar ao pedido</h3>
+            <button
+              className="pedido-cardapio__alternar"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="modal-cardapio"
+              onClick={abrirCardapio}
+            >
+              Adicionar pratos
+            </button>
+          </div>
         </div>
 
         <EtapaEntrega
@@ -205,6 +243,9 @@ function Pedido() {
           </span>
         </div>
         <ul className="resumo-pedido__itens">
+          {pratosPedido.length === 0 && (
+            <li className="resumo-pedido__vazio">Nenhum prato selecionado.</li>
+          )}
           {pratosPedido.map((prato) => (
             <li className="resumo-pedido__item" key={prato.id}>
               <div className="resumo-pedido__produto">
@@ -265,6 +306,14 @@ function Pedido() {
         )}
       </aside>
     </form>
+    <ModalPratos
+      dialogRef={modalPratosRef}
+      pratos={pratos}
+      pratosPedido={pratosPedido}
+      quantidadeTotal={quantidadeTotal}
+      onAdicionar={adicionarPrato}
+      onAlterarQuantidade={alterarQuantidade}
+    />
 
        </>
 
