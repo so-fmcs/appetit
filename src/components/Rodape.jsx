@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MapPin, Clock, Phone } from 'lucide-react'
+import { enderecoRestaurante } from '../data/restaurante'
 
 const estiloLink = 'hover:text-white transition duration-300'
 
@@ -17,7 +18,7 @@ function Rodape() {
         </div>
 
         <address className="not-italic space-y-3">
-          <p className="flex items-center gap-2"><MapPin className="size-4" aria-hidden="true" /> Rua das Flores, 123, Centro</p>
+          <p className="flex items-center gap-2"><MapPin className="size-4" aria-hidden="true" /> {enderecoRestaurante}</p>
           <p className="flex items-center gap-2"><Clock className="size-4" aria-hidden="true" /> Terça a domingo, 11h30 às 22h</p>
           <p className="flex items-center gap-2"><Phone className="size-4" aria-hidden="true" /> (55) 3333-0000</p>
         </address>
