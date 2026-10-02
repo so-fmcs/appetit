@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
-import { ArrowRight, Truck } from "lucide-react";
+import { ArrowRight, MapPin, Truck } from "lucide-react";
 import EtapaDados from "../components/DadosForm";
 import EtapaEntrega from "../components/EtapaEntrega";
 import HeaderPedido from "../components/HeaderPedido";
 import PratoItem from "../components/PratoItem";
 import ModalPratos from "../components/ModalPratos";
 import { pratos } from "../data/pratos";
+import { taxaEntregaRestaurante } from "../data/restaurante";
+import { calcularResumoPedido } from "../utils/calcularResumoPedido";
 import "../assets/styles/pedido.css";
 import { validarPedido } from "../utils/validarPedido";
 import { montarPedido } from "../utils/montarPedido";
@@ -40,14 +42,18 @@ function Pedido() {
     : statusEnvio === "sucesso"
       ? (confirmacao?.simulado ? "Simulação concluída" : "Pedido confirmado")
       : "Confirmar pedido";
-  const quantidadeTotal = pratosPedido.reduce(
-    (total, prato) => total + prato.quantidade,
-    0,
+  // Valores derivados do pedido: não precisam de outro estado do React.
+  const { quantidadeTotal, subtotal, taxaEntrega, total } = calcularResumoPedido(
+    pratosPedido,
+    tipoRecebimento,
+    taxaEntregaRestaurante,
   );
-  const subtotal = pratosPedido.reduce(
-    (total, prato) => total + prato.preco * prato.quantidade,
-    0,
-  );
+  const retiradaSelecionada = tipoRecebimento === "retirada";
+  const descricaoRecebimento = retiradaSelecionada
+    ? "Sem taxa de entrega"
+    : quantidadeTotal === 0
+      ? "Adicione pratos para calcular"
+      : `Taxa fixa de ${moeda(taxaEntrega)}`;
 
   function abrirCardapio() {
     if (bloqueado || modalPratosRef.current.open) return;
@@ -270,17 +276,17 @@ function Pedido() {
           ))}
         </ul>
         <div className="resumo-pedido__entrega">
-          <Truck aria-hidden="true" />
-          <strong>Entrega</strong>
-          <span>Calculada pelo CEP</span>
+          {retiradaSelecionada ? <MapPin aria-hidden="true" /> : <Truck aria-hidden="true" />}
+          <strong>{retiradaSelecionada ? "Retirada no bistrô" : "Entrega"}</strong>
+          <span>{descricaoRecebimento}</span>
         </div>
         <div className="resumo-pedido__valores">
           <p><span>Subtotal</span><span>{moeda(subtotal)}</span></p>
-          <p><span>Entrega</span><span>Calculada pelo CEP</span></p>
+          <p><span>Taxa de entrega</span><span>{moeda(taxaEntrega)}</span></p>
         </div>
         <div className="resumo-pedido__total">
           <strong>Total</strong>
-          <strong>{moeda(subtotal)}</strong>
+          <strong>{moeda(total)}</strong>
         </div>
         <button className="resumo-pedido__botao" type="submit" disabled={bloqueado}>
           <span>{textoConfirmar}</span>
@@ -289,7 +295,7 @@ function Pedido() {
         <div className="resumo-pedido__mobile">
           <div>
             <span>Total · {quantidadeTotal} itens</span>
-            <strong>{moeda(subtotal)}</strong>
+            <strong>{moeda(total)}</strong>
           </div>
           <button className="resumo-pedido__botao" type="submit" disabled={bloqueado}>
             <span>{statusEnvio === "ocioso" || statusEnvio === "erro" ? "Confirmar" : textoConfirmar}</span>
