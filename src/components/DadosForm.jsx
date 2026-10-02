@@ -1,4 +1,6 @@
-function EtapaDados() {
+import ErroCampo from "./ErroCampo";
+
+function EtapaDados({ erros = {} }) {
   return (
     <section className="pedido-card etapa-dados">
       <p className="etapa-dados__rotulo">03 · VOUS</p>
@@ -7,7 +9,16 @@ function EtapaDados() {
       <div className="etapa-dados__campos">
         <div className="campo campo--nome">
           <label htmlFor="nome">Nome completo</label>
-          <input id="nome" name="nome" autoComplete="name" required />
+          <input
+            id="nome"
+            name="nome"
+            aria-invalid={Boolean(erros.nome)}
+            aria-describedby={erros.nome ? "nome-erro" : undefined}
+            autoComplete="name"
+            minLength={3}
+            required
+          />
+          <ErroCampo campo="nome" mensagem={erros.nome} />
         </div>
 
         <div className="campo">
@@ -15,11 +26,16 @@ function EtapaDados() {
           <input
             id="telefone"
             name="telefone"
+            aria-invalid={Boolean(erros.telefone)}
+            aria-describedby={erros.telefone ? "telefone-erro" : undefined}
             type="tel"
             placeholder="(00) 00000-0000"
             autoComplete="tel"
+            pattern="\(?\d{2}\)?\s?9?\d{4}-?\d{4}"
+            title="Informe um telefone válido, com DDD."
             required
           />
+          <ErroCampo campo="telefone" mensagem={erros.telefone} />
         </div>
 
         <div className="campo">
@@ -27,10 +43,13 @@ function EtapaDados() {
           <input
             id="email"
             name="email"
+            aria-invalid={Boolean(erros.email)}
+            aria-describedby={erros.email ? "email-erro" : undefined}
             type="email"
             placeholder="voce@email.com"
             autoComplete="email"
           />
+          <ErroCampo campo="email" mensagem={erros.email} />
         </div>
 
         <div className="campo campo--observacoes">

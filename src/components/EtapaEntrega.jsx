@@ -1,15 +1,25 @@
-function EtapaEntrega() {
+import ErroCampo from "./ErroCampo";
+
+function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) {
+  const entregaSelecionada = tipoRecebimento === "entrega";
   return (
     <section className="pedido-card etapa-entrega">
       <p className="etapa-entrega__rotulo">02 · LA LIVRAISON</p>
       <h2 className="etapa-entrega__titulo">Como quer receber</h2>
 
-      <div className="etapa-entrega__opcoes">
+      <div
+        className="etapa-entrega__opcoes"
+        role="group"
+        aria-label="Como quer receber"
+        aria-describedby={erros["tipo-recebimento"] ? "tipo-recebimento-erro" : undefined}
+      >
         <label className="opcao-recebimento">
           <input
             type="radio"
             name="tipo-recebimento"
             value="retirada"
+            checked={tipoRecebimento === "retirada"}
+            onChange={() => onTipoRecebimentoChange("retirada")}
           />
           <span className="opcao-recebimento__texto">
             <strong>Retirar no bistrô</strong>
@@ -22,7 +32,9 @@ function EtapaEntrega() {
             type="radio"
             name="tipo-recebimento"
             value="entrega"
-            defaultChecked
+            checked={tipoRecebimento === "entrega"}
+            onChange={() => onTipoRecebimentoChange("entrega")}
+            required
           />
           <span className="opcao-recebimento__texto">
             <strong>Entrega</strong>
@@ -31,30 +43,70 @@ function EtapaEntrega() {
         </label>
       </div>
 
+      <ErroCampo campo="tipo-recebimento" mensagem={erros["tipo-recebimento"]} />
+
       <div className="etapa-entrega__endereco">
         <div className="campo campo--cep">
           <label htmlFor="cep">CEP</label>
-          <input id="cep" name="cep" placeholder="00000-000" />
+          <input
+            id="cep"
+            name="cep"
+            disabled={!entregaSelecionada}
+            aria-invalid={entregaSelecionada && Boolean(erros.cep)}
+            aria-describedby={entregaSelecionada && erros.cep ? "cep-erro" : undefined}
+            placeholder="00000-000"
+            autoComplete="postal-code"
+            pattern="\d{5}-?\d{3}"
+            title="Informe um CEP válido."
+            required={entregaSelecionada}
+          />
+          <ErroCampo campo="cep" mensagem={entregaSelecionada ? erros.cep : undefined} />
         </div>
 
         <div className="campo campo--endereco">
           <label htmlFor="endereco">Endereço</label>
-          <input id="endereco" name="endereco" placeholder="Rua, avenida..." />
+          <input
+            id="endereco"
+            name="endereco"
+            disabled={!entregaSelecionada}
+            aria-invalid={entregaSelecionada && Boolean(erros.endereco)}
+            aria-describedby={entregaSelecionada && erros.endereco ? "endereco-erro" : undefined}
+            placeholder="Rua, avenida..."
+            autoComplete="street-address"
+            required={entregaSelecionada}
+          />
+          <ErroCampo campo="endereco" mensagem={entregaSelecionada ? erros.endereco : undefined} />
         </div>
 
         <div className="campo campo--numero">
           <label htmlFor="numero">Número</label>
-          <input id="numero" name="numero" />
+          <input
+            id="numero"
+            name="numero"
+            disabled={!entregaSelecionada}
+            aria-invalid={entregaSelecionada && Boolean(erros.numero)}
+            aria-describedby={entregaSelecionada && erros.numero ? "numero-erro" : undefined}
+            required={entregaSelecionada}
+          />
+          <ErroCampo campo="numero" mensagem={entregaSelecionada ? erros.numero : undefined} />
         </div>
 
         <div className="campo campo--complemento">
           <label htmlFor="complemento">Complemento (opcional)</label>
-          <input id="complemento" name="complemento" placeholder="Apto, bloco..." />
+          <input id="complemento" name="complemento" placeholder="Apto, bloco..." disabled={!entregaSelecionada} />
         </div>
 
         <div className="campo campo--bairro">
           <label htmlFor="bairro">Bairro</label>
-          <input id="bairro" name="bairro" />
+          <input
+            id="bairro"
+            name="bairro"
+            disabled={!entregaSelecionada}
+            aria-invalid={entregaSelecionada && Boolean(erros.bairro)}
+            aria-describedby={entregaSelecionada && erros.bairro ? "bairro-erro" : undefined}
+            required={entregaSelecionada}
+          />
+          <ErroCampo campo="bairro" mensagem={entregaSelecionada ? erros.bairro : undefined} />
         </div>
       </div>
     </section>

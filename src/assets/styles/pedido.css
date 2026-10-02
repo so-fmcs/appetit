@@ -1179,3 +1179,23 @@ font-weight: bold;
   }
 }
 
+
+/* Erros de validação: texto e borda identificam o campo a corrigir. */
+.campo input[aria-invalid="true"] {
+  border-color: #a12f25;
+}
+
+.campo__erro {
+  margin: 0;
+  color: #a12f25;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.campo input:disabled {
+  background: #f6f1eb;
+  color: #75695d;
+  cursor: not-allowed;
+}
+
