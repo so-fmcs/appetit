@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowRight, Minus, Plus, Trash2, Truck } from "lucide-react";
 import EtapaDados from "../components/DadosForm";
 import EtapaEntrega from "../components/EtapaEntrega";
@@ -6,6 +6,8 @@ import HeaderPedido from "../components/HeaderPedido";
 import { pratos } from "../data/pratos";
 import "../assets/styles/pedido.css";
 import { validarPedido } from "../utils/validarPedido";
+import { montarPedido } from "../utils/montarPedido";
+import { enviarPedido } from "../services/enviarPedido";
 
 const pratosExemplo = [
   { ...pratos[0], quantidade: 1 },
@@ -25,6 +27,16 @@ function Pedido() {
   const [mensagemValidacao, setMensagemValidacao] = useState("");
   const [erros, setErros] = useState({});
   const [tentouConfirmar, setTentouConfirmar] = useState(false);
+  const [statusEnvio, setStatusEnvio] = useState("ocioso");
+  const [confirmacao, setConfirmacao] = useState(null);
+  const formularioRef = useRef(null);
+  const envioEmAndamento = useRef(false);
+  const bloqueado = statusEnvio === "enviando" || statusEnvio === "sucesso";
+  const textoConfirmar = statusEnvio === "enviando"
+    ? "Enviando pedido…"
+    : statusEnvio === "sucesso"
+      ? (confirmacao?.simulado ? "Simulação concluída" : "Pedido confirmado")
+      : "Confirmar pedido";
   const quantidadeTotal = pratosPedido.reduce(
     (total, prato) => total + prato.quantidade,
     0,
@@ -41,6 +53,8 @@ function Pedido() {
   }
 
   function atualizarValidacao(evento) {
+    if (bloqueado) return;
+    setStatusEnvio("ocioso");
     setMensagemValidacao("");
     // Só mostra erros durante a edição depois da primeira tentativa.
     if (evento.target.name === "tipo-recebimento") {
@@ -56,8 +70,10 @@ function Pedido() {
     if (tentouConfirmar) setErros(lerErros(evento.currentTarget));
   }
 
-  function confirmarPedido(evento) {
+  async function confirmarPedido(evento) {
     evento.preventDefault();
+    // A ref bloqueia um segundo envio antes mesmo de o React atualizar a tela.
+    if (envioEmAndamento.current || statusEnvio === "sucesso") return;
     const formulario = evento.currentTarget;
     const novosErros = lerErros(formulario);
     setTentouConfirmar(true);
@@ -73,11 +89,45 @@ function Pedido() {
       return; // Impede continuar quando há dados inválidos.
     }
 
-    setMensagemValidacao(
-      quantidadeTotal > 0
-        ? "Dados validados. O pedido ainda não foi enviado."
-        : "Adicione pelo menos um prato antes de confirmar.",
-    );
+    const dados = Object.fromEntries(new FormData(formulario));
+    const pedido = montarPedido(dados, pratosPedido);
+    if (pedido.itens.length === 0) {
+      setMensagemValidacao("Adicione pelo menos um prato antes de confirmar.");
+      return;
+    }
+
+    // Os dados são lidos antes de desabilitar os campos.
+    envioEmAndamento.current = true;
+    setStatusEnvio("enviando");
+    setMensagemValidacao("Enviando pedido…");
+
+    try {
+      const resposta = await enviarPedido(pedido);
+      setConfirmacao(resposta);
+      setStatusEnvio("sucesso");
+      setMensagemValidacao(resposta.simulado
+        ? `Simulação concluída. Nenhum pedido foi enviado ao bistrô. Referência: ${resposta.id}`
+        : `Pedido confirmado! Número: ${resposta.id}`,
+      );
+    } catch (erro) {
+      setStatusEnvio("erro");
+      setMensagemValidacao(erro instanceof Error
+        ? erro.message
+        : "Não foi possível confirmar o pedido. Tente novamente.",
+      );
+    } finally {
+      envioEmAndamento.current = false;
+    }
+  }
+
+  function iniciarNovoPedido() {
+    formularioRef.current?.reset();
+    setTipoRecebimento("entrega");
+    setErros({});
+    setTentouConfirmar(false);
+    setConfirmacao(null);
+    setStatusEnvio("ocioso");
+    setMensagemValidacao("");
   }
 
   return (
@@ -87,11 +137,13 @@ function Pedido() {
     {/* noValidate permite mostrar nossas mensagens, em vez dos balões do navegador. */}
     <form
       className="pedido-conteudo"
+      ref={formularioRef}
+      aria-busy={statusEnvio === "enviando"}
       onSubmit={confirmarPedido}
       onChange={atualizarValidacao}
       noValidate
     >
-      <div className="pedido-secoes">
+      <fieldset className="pedido-secoes" disabled={bloqueado}>
         <div className="pedido-card prato-container">
           <div className="texto-escolha-pratos">
             <span>01 · VOTRE SÉLECTION</span>
@@ -143,7 +195,7 @@ function Pedido() {
           erros={erros}
         />
         <EtapaDados erros={erros} />
-      </div>
+      </fieldset>
       <aside className="pedido-card resumo-pedido">
         <p className="resumo-pedido__rotulo">Votre commande</p>
         <div className="resumo-pedido__cabecalho">
@@ -189,8 +241,8 @@ function Pedido() {
           <strong>Total</strong>
           <strong>{moeda(subtotal)}</strong>
         </div>
-        <button className="resumo-pedido__botao" type="submit">
-          <span>Confirmar pedido</span>
+        <button className="resumo-pedido__botao" type="submit" disabled={bloqueado}>
+          <span>{textoConfirmar}</span>
           <span className="resumo-pedido__seta"><ArrowRight aria-hidden="true" /></span>
         </button>
         <div className="resumo-pedido__mobile">
@@ -198,14 +250,19 @@ function Pedido() {
             <span>Total · {quantidadeTotal} itens</span>
             <strong>{moeda(subtotal)}</strong>
           </div>
-          <button className="resumo-pedido__botao" type="submit">
-            <span>Confirmar</span>
+          <button className="resumo-pedido__botao" type="submit" disabled={bloqueado}>
+            <span>{statusEnvio === "ocioso" || statusEnvio === "erro" ? "Confirmar" : textoConfirmar}</span>
             <span className="resumo-pedido__seta"><ArrowRight aria-hidden="true" /></span>
           </button>
         </div>
         <p className="resumo-pedido__mensagem" role="status" aria-live="polite">
           {mensagemValidacao}
         </p>
+        {statusEnvio === "sucesso" && (
+          <button className="resumo-pedido__novo" type="button" onClick={iniciarNovoPedido}>
+            Novo pedido
+          </button>
+        )}
       </aside>
     </form>
 
