@@ -1,21 +1,45 @@
+import { useEffect, useRef, useState } from "react";
+
 function NossaHistoria() {
+
+
+  const polaroidRef = useRef(null);
+  const [apareceu, setApareceu] = useState(false);
+
+  useEffect(() => {
+    const vigia = new IntersectionObserver(
+      ([entrada]) => {
+        setApareceu(entrada.isIntersecting);
+      },
+      {threshold: 0.5}
+    );
+
+    vigia.observe(polaroidRef.current);
+
+    return () => vigia.disconnect();
+  },[]);
+
   return (
-    <section className="flex flex-col md:flex-row items-center gap-12 max-w-6xl mx-auto px-8 py-20">
-      <div className="flex-1 flex justify-center">
-        <figure className="bg-white p-3 shadow-lg -rotate-2 transition duration-300 ease-out hover:rotate-0 motion-reduce:transition-none">
+    <section className="flex flex-col md:flex-row items-center gap-12 max-w-7xl mx-auto px-8 py-20 md:justify-center">
+      <div>
+        <figure
+          ref={polaroidRef}
+          className={"bg-white p-3 shadow-lg transition duration-700 ease-out hover:rotate-0 motion-reduce:transition-none " + (apareceu ? "-rotate-2" : "rotate-6")
+          }
+        >
           <img
             src="/chefe.jpg"
-            alt="Chef Henri preparando um prato na cozinha do restaurante"
-            className="w-72 h-80 object-cover"
+            alt="Chef Bimmel preparando um prato na cozinha do restaurante"
+            className="w-72 h-80 xl:w-80 xl:h-96 object-cover"
           />
           <figcaption className="mt-3 mb-1 text-center text-sm italic">Chef Bimmel, na cozinha do Appetit</figcaption>
         </figure>
       </div>
 
-      <div className="flex-1">
+      <div className="max-w-xl">
         <p className="font-titulo text-sm uppercase tracking-widest text-verde-oliva">Notre histoire</p>
-        <h2 className="font-titulo text-4xl font-bold uppercase">Nossa história</h2>
-        <p className="mt-4 text-lg">
+        <h2 className="font-titulo text-4xl font-bold uppercase xl:text-5xl">Nossa história</h2>
+        <p className="mt-4 text-lg xl:text-xl">
           O Appetit nasceu quando o chef Bimmel trocou Lyon pelo Sul do Brasil e trouxe na bagagem as receitas da avó.
         </p>
         <p className="mt-4">
