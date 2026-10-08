@@ -48,17 +48,27 @@ function Pratos() {
   return (
     <main>
       {/* 1 cabeçalho da pagina */}
-      <section className="mx-auto max-w-7xl px-6 py-12">
-        <p className="mb-2 font-titulo text-sm uppercase tracking-[0.2em] text-terracota">
-          La carte
-        </p>
-        <h1 className="font-titulo text-4xl font-bold uppercase text-marrom-escuro">
-          Nosso cardápio
-        </h1>
-        <p className="mt-3 max-w-2xl text-base text-marrom-escuro/80">
-          Clássicos da cozinha francesa, feitos na hora. Escolha um prato, veja
-          os detalhes e monte seu pedido.
-        </p>
+      <section className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-6 py-12 lg:grid-cols-2">
+        <div>
+          <p className="mb-2 font-titulo text-6x1 uppercase tracking-[0.2em] text-terracota">
+            La carte
+          </p>
+
+          <h1 className="font-titulo text-6xl font-bold uppercase text-marrom-escuro">
+            Nosso cardápio
+          </h1>
+
+          <p className="mt-3 max-w-2xl text-base text-marrom-escuro/80">
+            Clássicos da cozinha francesa, feitos na hora. Escolha um prato,
+            veja os detalhes e monte seu pedido.
+          </p>
+        </div>
+
+        <img
+          src="/quadroRatatouille.png"
+          alt="Quadro com uma ilustração de Ratatouille"
+          className="h-70 rounded-2xl object-cover sm:h-90 lg:translate-x-40 lg:translate-y-5"
+        />
       </section>
 
       {/* 2 busca e filtros*/}
