@@ -26,7 +26,7 @@ function Rodape() {
         <nav aria-label="Rodapé" className="flex flex-col gap-2 font-titulo uppercase tracking-widest">
           <Link to="/" className={estiloLink}>Início</Link>
           <Link to="/pratos" className={estiloLink}>Pratos</Link>
-          <Link to="/pedidos" className={estiloLink}>Pedidos</Link>
+          <Link to="/pedido" className={estiloLink}>Carrinho</Link>
           <a href="https://www.instagram.com" target="_blank" rel="noreferrer" className={estiloLink}>Instagram</a>
         </nav>
       </div>
