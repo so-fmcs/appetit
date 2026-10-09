@@ -9,7 +9,7 @@ function Rodape() {
     <footer className="bg-marrom-escuro text-bege-areia">
       <div className="toldo h-4 border-t-4 border-marrom-escuro" aria-hidden="true"></div>
 
-      <div className="grid gap-10 md:grid-cols-3 max-w-7xl mx-auto px-8 py-12">
+      <div className="grid gap-10 md:grid-cols-3 largura-site mx-auto px-8 py-12">
         <div>
           <p className="font-titulo text-3xl font-bold uppercase tracking-wide">
             Appetit<span className="text-terracota" aria-hidden="true">.</span>

@@ -12,7 +12,7 @@ function FiltrosPratos({
 }) {
   return (
     <section
-      className="mx-auto max-w-7xl px-6 pb-6"
+      className="mx-auto largura-site px-6 pb-6"
       aria-label="Buscar e filtrar pratos"
     >
       <div className="flex flex-wrap items-end gap-3 border-b border-bege-areia pb-5">

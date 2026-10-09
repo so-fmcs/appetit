@@ -1,6 +1,6 @@
 function CabecalhoPratos() {
   return (
-    <section className="mx-auto flex max-w-7xl flex-col items-center gap-8 px-6 pb-10 pt-14 md:flex-row md:justify-between">
+    <section className="mx-auto flex largura-site flex-col items-center gap-8 px-6 pb-10 pt-14 md:flex-row md:justify-between">
       <div>
         <p className="mb-3 font-titulo text-base uppercase tracking-[0.3em] md:text-lg text-terracota-escuro">
           La carte

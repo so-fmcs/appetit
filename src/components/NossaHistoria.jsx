@@ -20,7 +20,7 @@ function NossaHistoria() {
   },[]);
 
   return (
-    <section className="flex flex-col md:flex-row items-center gap-12 max-w-7xl mx-auto px-8 py-20 md:justify-center">
+    <section className="flex flex-col md:flex-row items-center gap-12 largura-site mx-auto px-8 py-20 md:justify-center">
       <div>
         <figure
           ref={polaroidRef}

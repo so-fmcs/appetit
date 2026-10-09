@@ -14,8 +14,29 @@
   --font-titulo: "Oswald", sans-serif;
   --font-sans: "DM Sans", sans-serif;
 
+  /* Telas largas: 1920px e 2560px (media queries usam os 16px padrão do navegador). */
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 160rem;
+
   --animate-carrossel: carrossel 40s linear infinite;
   --animate-balanca: balanca 3s ease-in-out infinite;
+}
+
+/* Em telas muito largas o site inteiro cresce junto, porque o Tailwind usa rem.
+   Porcentagem (e não px) mantém o zoom e a fonte escolhida pelo usuário. */
+@media (width >= 120rem) {
+  html { font-size: 112.5%; } /* 18px */
+}
+@media (width >= 160rem) {
+  html { font-size: 125%; } /* 20px */
+}
+
+/* Largura do conteúdo: 1280px no notebook, cresce em monitores grandes. */
+@utility largura-site {
+  max-width: 80rem; /* 1280px */
+  @media (width >= 96rem) { max-width: 90rem; } /* 1440px */
+  @media (width >= 120rem) { max-width: 98rem; } /* ~1760px com base de 18px */
+  @media (width >= 160rem) { max-width: 110rem; } /* 2200px com base de 20px */
 }
 
 body{

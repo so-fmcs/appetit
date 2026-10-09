@@ -55,7 +55,7 @@ function PratosDaCasa() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-8 py-16">
+    <section className="largura-site mx-auto px-8 py-16">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="font-titulo text-sm uppercase tracking-widest text-verde-oliva">

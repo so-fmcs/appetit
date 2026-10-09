@@ -1,7 +1,7 @@
 function SkeletonPratos({ quantidade }) {
   return (
     <ul
-      className="grid list-none grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      className="grid list-none grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 4xl:grid-cols-5"
       aria-hidden="true"
     >
       {Array.from({ length: quantidade }, (_, i) => (

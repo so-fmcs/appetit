@@ -132,7 +132,7 @@ function Pratos() {
         desativado={status !== "pronto"}
       />
 
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="mx-auto largura-site px-6">
         <div className="flex flex-wrap items-end justify-between gap-3 pb-6">
           <div>
             <h2 className="font-titulo text-4xl font-bold uppercase leading-none md:text-5xl">
@@ -219,7 +219,7 @@ function Pratos() {
         )}
 
         {status === "pronto" && pratosFiltrados.length > 0 && (
-          <ul className="grid list-none grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid list-none grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 4xl:grid-cols-5">
             {pratosFiltrados.map((prato) => (
               <li key={prato.idMeal}>
                 <CardCardapio
