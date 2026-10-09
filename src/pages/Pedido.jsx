@@ -1,22 +1,19 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, MapPin, Truck } from "lucide-react";
 import EtapaDados from "../components/DadosForm";
 import EtapaEntrega from "../components/EtapaEntrega";
 import HeaderPedido from "../components/HeaderPedido";
 import PratoItem from "../components/PratoItem";
 import ModalPratos from "../components/ModalPratos";
-import { pratos } from "../data/pratos";
+import { usePedido } from "../context/PedidoContext";
+import { buscarPratosDetalhados } from "../services/cardapio";
+import { converterPrato } from "../utils/converterPrato";
 import { taxaEntregaRestaurante } from "../data/restaurante";
 import { calcularResumoPedido } from "../utils/calcularResumoPedido";
 import "../assets/styles/pedido.css";
 import { validarPedido } from "../utils/validarPedido";
 import { montarPedido } from "../utils/montarPedido";
 import { enviarPedido } from "../services/enviarPedido";
-
-const pratosExemplo = [
-  { ...pratos[0], quantidade: 1 },
-  { ...pratos[pratos.length - 1], quantidade: 2 },
-];
 
 function moeda(valor) {
   return valor.toLocaleString("pt-BR", {
@@ -26,7 +23,11 @@ function moeda(valor) {
 }
 
 function Pedido() {
-  const [pratosPedido, setPratosPedido] = useState(() => pratosExemplo);
+  // O pedido é compartilhado com a página Pratos.
+  const { pratosPedido, setPratosPedido } = usePedido();
+  const [pratos, setPratos] = useState([]);
+  const [statusCatalogo, setStatusCatalogo] = useState("carregando");
+  const [tentativaCatalogo, setTentativaCatalogo] = useState(0);
   const [tipoRecebimento, setTipoRecebimento] = useState("entrega");
   const [mensagemValidacao, setMensagemValidacao] = useState("");
   const [erros, setErros] = useState({});
@@ -54,6 +55,25 @@ function Pedido() {
     : quantidadeTotal === 0
       ? "Adicione pratos para calcular"
       : `Taxa fixa de ${moeda(taxaEntrega)}`;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    buscarPratosDetalhados({ signal: controller.signal })
+      .then((dados) => {
+        setPratos(dados.map(converterPrato));
+        setStatusCatalogo(dados.length > 0 ? "pronto" : "indisponivel");
+      })
+      .catch(() => {
+        // O pedido já montado continua visível; só o modal avisa da falha.
+        if (!controller.signal.aborted) setStatusCatalogo("erro");
+      });
+    return () => controller.abort();
+  }, [tentativaCatalogo]);
+
+  function recarregarCatalogo() {
+    setStatusCatalogo("carregando");
+    setTentativaCatalogo((atual) => atual + 1);
+  }
 
   function abrirCardapio() {
     if (bloqueado || modalPratosRef.current.open) return;
@@ -175,7 +195,7 @@ function Pedido() {
 
   function iniciarNovoPedido() {
     formularioRef.current?.reset();
-    setPratosPedido(pratosExemplo.map((prato) => ({ ...prato })));
+    setPratosPedido([]);
     setTipoRecebimento("entrega");
     setErros({});
     setTentouConfirmar(false);
@@ -315,6 +335,8 @@ function Pedido() {
     <ModalPratos
       dialogRef={modalPratosRef}
       pratos={pratos}
+      statusCatalogo={statusCatalogo}
+      onTentarNovamente={recarregarCatalogo}
       pratosPedido={pratosPedido}
       quantidadeTotal={quantidadeTotal}
       onAdicionar={adicionarPrato}

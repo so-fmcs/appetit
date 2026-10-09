@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import PratoItem from "./PratoItem";
 
-function ModalPratos({ dialogRef, pratos, pratosPedido, quantidadeTotal, onAdicionar, onAlterarQuantidade }) {
+function ModalPratos({ dialogRef, pratos, statusCatalogo, onTentarNovamente, pratosPedido, quantidadeTotal, onAdicionar, onAlterarQuantidade }) {
   const [mensagem, setMensagem] = useState("");
 
   function fechar() {
@@ -55,6 +55,21 @@ function ModalPratos({ dialogRef, pratos, pratosPedido, quantidadeTotal, onAdici
         </button>
       </div>
       <p className="pedido-modal__aviso" role="status" aria-live="polite">{mensagem}</p>
+      {statusCatalogo === "carregando" && (
+        <p className="pedido-modal__estado" role="status">Carregando pratos...</p>
+      )}
+      {(statusCatalogo === "erro" || statusCatalogo === "indisponivel") && (
+        <div className="pedido-modal__estado" role={statusCatalogo === "erro" ? "alert" : "status"}>
+          <p>
+            {statusCatalogo === "erro"
+              ? "Não foi possível carregar o cardápio. Verifique sua conexão e tente de novo."
+              : "Nenhum prato está disponível no momento."}
+          </p>
+          <button className="pedido-cardapio__alternar" type="button" onClick={onTentarNovamente}>
+            Tentar novamente
+          </button>
+        </div>
+      )}
       <div className="pedido-modal__lista">
         {pratos.map((prato) => (
           <PratoItem

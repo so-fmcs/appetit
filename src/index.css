@@ -2,6 +2,8 @@
 
 @theme {
   --color-terracota: #C25A3F;
+  /* Variante para fundos com texto branco (contraste 5,7:1). */
+  --color-terracota-escuro: #A84A31;
   --color-bege-areia: #D9C5B2;
   --color-bege-fendi: #A39686;
   --color-verde-oliva: #606C38;
