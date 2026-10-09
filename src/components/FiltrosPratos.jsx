@@ -11,17 +11,16 @@ function FiltrosPratos({
   quantidade,
   setBusca,
   setCategoriaSelecionada,
-  carregando,
-  erro,
-  quantidadeFiltrada,
-  quantidadeTotal,
+  ordem,
+  setOrdem,
+  desativado,
 }) {
   const handleBuscaChange = onBuscaChange ?? setBusca;
   const handleCategoriaChange = onCategoriaChange ?? setCategoriaSelecionada;
 
   return (
     <section
-      className="mx-auto max-w-7xl px-6 pb-8"
+      className="mx-auto largura-site px-6 pb-6"
       aria-label="Buscar e filtrar pratos"
     >
       <div className="pratos-filtros__linha">
@@ -75,9 +74,54 @@ function FiltrosPratos({
             }`}
 
           >
-            {categoria}
-          </button>
-        ))}
+            <option value="recomendados">Recomendados</option>
+            <option value="nome">Nome (A–Z)</option>
+          </select>
+        </div>
+
+        <div
+          className="flex basis-full flex-wrap gap-2 pt-2"
+          role="group"
+          aria-label="Filtrar pratos por categoria"
+        >
+          {categorias.map(({ nome, quantidade }) => {
+            const selecionada = nome === categoriaSelecionada;
+            // A categoria escolhida continua clicável mesmo se a busca a esvaziar.
+            const vazia = quantidade === 0 && !selecionada;
+
+            return (
+              <button
+                key={nome}
+                type="button"
+                aria-pressed={selecionada}
+                disabled={desativado || vazia}
+                onClick={() => setCategoriaSelecionada(nome)}
+                className={`flex min-h-12 items-center gap-2 rounded-full border px-5 text-base font-medium transition ${
+                  selecionada
+                    ? "border-marrom-escuro bg-marrom-escuro text-white"
+                    : vazia
+                      ? "cursor-not-allowed border-bege-areia/60 text-marrom-escuro/45"
+                      : "border-bege-areia bg-white hover:border-terracota-escuro disabled:cursor-wait disabled:opacity-60"
+                }`}
+              >
+                {nome}
+                {!desativado && (
+                  <span
+                    className={`min-w-7 rounded-full px-2 text-center text-sm font-bold ${
+                      vazia ? "" : "bg-creme text-marrom-escuro"
+                    }`}
+                  >
+                    <span className="sr-only">(</span>
+                    {quantidade}
+                    <span className="sr-only">
+                      {quantidade === 1 ? " prato)" : " pratos)"}
+                    </span>
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
       {quantidade !== undefined ? (
         <h2 className="pratos-catalogo__titulo">

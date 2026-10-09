@@ -28,7 +28,7 @@ function Hero() {
   }, []);
 
   return (
-    <section className="flex flex-col md:flex-row items-center gap-10 max-w-7xl mx-auto px-8 py-16">
+    <section className="flex flex-col md:flex-row items-center gap-10 largura-site mx-auto px-8 py-16">
       <div className="flex-1">
         <p className="font-titulo text-sm uppercase tracking-widest text-verde-oliva">
           Bistrô francês

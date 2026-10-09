@@ -17,6 +17,7 @@ function CabecalhoPratos() {
       <img
         src="/quadroRatatouille.png"
         alt="Quadro com uma ilustração de Ratatouille"
+        className="hidden max-h-80 w-auto max-w-sm object-contain md:block"
       />
     </section>
   );

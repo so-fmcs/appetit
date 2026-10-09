@@ -1321,6 +1321,23 @@ fieldset.pedido-secoes {
   font-size: 0.9rem;
 }
 
+/* Carregando, erro ou cardápio vazio dentro do modal. */
+.pedido-modal__estado {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  border: 1px dashed #d9c5b2;
+  border-radius: 16px;
+  color: #63584f;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.pedido-modal__estado p {
+  margin: 0;
+}
+
 .pedido-modal__lista {
   display: grid;
   gap: 0.75rem;

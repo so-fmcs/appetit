@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
+import PedidoProvider from "./context/PedidoProvider";
 import Home from "./pages/Home";
 import Pedido from "./pages/Pedido";
 import Pratos from "./pages/Pratos";
