@@ -3,7 +3,9 @@ import CardCardapio from "../components/CardCardapio";
 import CabecalhoPratos from "../components/CabecalhoPratos";
 import FiltrosPratos from "../components/FiltrosPratos";
 import ModalDetalhesPrato from "../components/ModalDetalhesPrato";
-import "../assets/styles/pratos.css";
+import { RefreshCw, SearchX, UtensilsCrossed } from "lucide-react";
+import MensagemPratos from "../components/MensagemPratos";
+import SkeletonPratos from "../components/SkeletonPratos";
 import { buscarPratosFranceses } from "../services/pratosFranceses";
 
 const categoriasCardapio = [
@@ -39,8 +41,8 @@ function Pratos({ pratosPedido = [], onAlterarQuantidade }) {
   const [busca, setBusca] = useState("");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
   const [ordenacao, setOrdenacao] = useState("destaques");
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(false);
+  const [status, setStatus] = useState("carregando");
+  const [tentativa, setTentativa] = useState(0);
   const [pratoDetalhe, setPratoDetalhe] = useState(null);
 
   useEffect(() => {
@@ -49,31 +51,29 @@ function Pratos({ pratosPedido = [], onAlterarQuantidade }) {
     buscarPratosFranceses(controlador.signal)
       .then((dados) => {
         const itens = Array.isArray(dados) ? dados : dados?.meals ?? [];
+        if (controlador.signal.aborted) return;
         setPratos(itens);
+        setStatus(itens.length ? "pronto" : "indisponivel");
       })
       .catch((erroBusca) => {
-        if (erroBusca.name !== "AbortError") setErro(true);
-      })
-      .finally(() => {
-        if (!controlador.signal.aborted) setCarregando(false);
+        if (!controlador.signal.aborted && erroBusca.name !== "AbortError") setStatus("erro");
       });
 
     return () => controlador.abort();
-  }, []);
+  }, [tentativa]);
 
-  const pratosFiltrados = pratos.filter((prato) => {
-    const nome = prato?.nome ?? prato?.strMeal ?? "";
-    const descricao = prato?.descricao ?? prato?.strInstructions ?? "";
-    const categoria = prato?.categoria ?? prato?.strCategory ?? "";
-    const correspondeCategoria =
-      categoriaSelecionada === "Todos" ||
-      categoria === categoriaSelecionada ||
-      (categoriasDaApi[categoriaSelecionada] ?? []).includes(categoria);
-    const correspondeBusca = normalizar(`${nome} ${descricao}`).includes(
-      normalizar(busca),
-    );
-    return correspondeCategoria && correspondeBusca;
-  });
+  const correspondeCategoria = (prato, categoria) => categoria === "Todos" ||
+    (prato.categoria ?? prato.strCategory) === categoria ||
+    (categoriasDaApi[categoria] ?? []).includes(prato.categoria ?? prato.strCategory);
+  const termo = normalizar(busca.trim());
+  const pratosDaBusca = pratos.filter(prato => normalizar(`${prato.nome ?? prato.strMeal ?? ""} ${prato.descricao ?? ""}`).includes(termo));
+  // Contadores respeitam a busca, antes de aplicar a categoria selecionada.
+  const categorias = ["Todos", ...new Set([...categoriasCardapio.slice(1), ...Object.keys(categoriasDaApi), ...pratos.map(prato => prato.categoria).filter(Boolean)])]
+    .map(nome => ({ nome, quantidade: pratosDaBusca.filter(prato => correspondeCategoria(prato, nome)).length }));
+  const pratosFiltrados = pratosDaBusca.filter(prato => correspondeCategoria(prato, categoriaSelecionada));
+  const filtrosAtivos = Boolean(termo) || categoriaSelecionada !== "Todos";
+  function limparFiltros() { setBusca(""); setCategoriaSelecionada("Todos"); }
+  function tentarNovamente() { setStatus("carregando"); setTentativa(atual => atual + 1); }
 
   const pratosOrdenados = [...pratosFiltrados];
 
@@ -95,64 +95,31 @@ function Pratos({ pratosPedido = [], onAlterarQuantidade }) {
   }
 
   return (
-    <main className="pagina-pratos">
+    <main className="pb-16">
       <CabecalhoPratos />
-      <div className="pratos-layout">
-        <section className="pratos-catalogo" aria-label="Catálogo de pratos">
-          <FiltrosPratos
-            busca={busca}
-            onBuscaChange={setBusca}
-            categorias={[
-              "Todos",
-              ...new Set([
-                ...categoriasCardapio.filter((categoria) => categoria !== "Todos"),
-                ...Object.keys(categoriasDaApi),
-              ]),
-            ]}
-            categoriaSelecionada={categoriaSelecionada}
-            onCategoriaChange={setCategoriaSelecionada}
-            ordenacao={ordenacao}
-            onOrdenacaoChange={setOrdenacao}
-            quantidade={pratosFiltrados.length}
-          />
-          {carregando && (
-            <p className="pratos-estado" role="status">
-              Carregando pratos...
-            </p>
-          )}
-          {erro && (
-            <p className="pratos-estado" role="alert">
-              Não foi possível carregar os pratos agora. Tente recarregar a página.
-            </p>
-          )}
-          {!carregando && !erro && pratosFiltrados.length === 0 && (
-            <p className="pratos-estado" role="status">
-              Nenhum prato encontrado com esses filtros.
-            </p>
-          )}
-          <ul className="pratos-grade">
-            {pratosOrdenados.map((prato) => (
-              <CardCardapio
-                key={prato.id ?? prato.idMeal}
-                prato={prato}
-                quantidade={
-                  pratosPedido.find(
-                    (item) => (item.id ?? item.idMeal) === (prato.id ?? prato.idMeal),
-                  )?.quantidade ?? 0
-                }
-                onAbrirDetalhes={setPratoDetalhe}
-                onAlterarQuantidade={onAlterarQuantidade}
-              />
-            ))}
-          </ul>
-        </section>
-      </div>
-      <ModalDetalhesPrato
-        prato={pratoDetalhe}
-        onClose={() => setPratoDetalhe(null)}
-      />
+      <FiltrosPratos busca={busca} onBuscaChange={setBusca} categorias={categorias}
+        categoriaSelecionada={categoriaSelecionada} onCategoriaChange={setCategoriaSelecionada}
+        ordenacao={ordenacao} onOrdenacaoChange={setOrdenacao} desativado={status !== "pronto"} />
+      <section className="mx-auto largura-site px-6" aria-label="Catálogo de pratos" aria-busy={status === "carregando"}>
+        <div className="flex flex-wrap items-end justify-between gap-3 pb-6">
+          <div><h2 className="font-titulo text-4xl font-bold uppercase leading-none md:text-5xl">{categoriaSelecionada === "Todos" ? "Todos os pratos" : categoriaSelecionada}</h2>
+            <p className="mt-2 text-lg text-marrom-escuro/80" aria-live="polite">{status === "carregando" ? "Carregando pratos..." : status === "erro" ? "Não foi possível carregar os pratos." : status === "indisponivel" ? "Nenhum prato disponível agora." : `Mostrando ${pratosFiltrados.length} de ${pratos.length} pratos`}</p>
+          </div>
+          {status === "pronto" && filtrosAtivos && <button type="button" onClick={limparFiltros} className="py-2 font-bold underline underline-offset-4 hover:text-terracota-escuro">Limpar filtros</button>}
+        </div>
+        {status === "carregando" && <SkeletonPratos quantidade={6} />}
+        {(status === "erro" || status === "indisponivel") && <MensagemPratos icone={UtensilsCrossed} titulo={status === "erro" ? "A cozinha não respondeu" : "Cardápio indisponível"} texto={status === "erro" ? "Não foi possível carregar o cardápio. Verifique sua conexão e tente de novo." : "Nenhum prato está disponível no momento. Tente novamente em alguns minutos."} alerta={status === "erro"}>
+          <button type="button" onClick={tentarNovamente} className="flex min-h-12 items-center gap-2 rounded-full bg-terracota-escuro px-5 font-bold text-white hover:bg-marrom-escuro"><RefreshCw aria-hidden="true" className="size-5" />Tentar novamente</button>
+        </MensagemPratos>}
+        {status === "pronto" && pratosFiltrados.length === 0 && <MensagemPratos icone={SearchX} titulo="Nada por aqui" texto={busca.trim() ? `Nenhum prato encontrado para “${busca.trim()}”.` : "Nenhum prato encontrado nesta categoria."}>
+          <button type="button" onClick={limparFiltros} className="min-h-12 rounded-full bg-terracota-escuro px-5 font-bold text-white hover:bg-marrom-escuro">Limpar filtros</button>
+        </MensagemPratos>}
+        {status === "pronto" && pratosOrdenados.length > 0 && <ul className="grid list-none grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 4xl:grid-cols-5">
+          {pratosOrdenados.map(prato => <CardCardapio key={prato.id ?? prato.idMeal} prato={prato} quantidade={pratosPedido.find(item => item.id === prato.id)?.quantidade ?? 0} onAbrirDetalhes={setPratoDetalhe} onAlterarQuantidade={onAlterarQuantidade} />)}
+        </ul>}
+      </section>
+      <ModalDetalhesPrato prato={pratoDetalhe} quantidade={pratosPedido.find(item => item.id === pratoDetalhe?.id)?.quantidade ?? 0} onAlterarQuantidade={onAlterarQuantidade} onClose={() => setPratoDetalhe(null)} />
     </main>
   );
 }
-
 export default Pratos;

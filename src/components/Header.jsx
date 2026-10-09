@@ -12,7 +12,7 @@ const estiloLink = ({ isActive }) =>
   'hover:text-white transition duration-300 motion-reduce:transition-none ' +
   (isActive ? 'underline decoration-terracota decoration-4 underline-offset-8' : '')
 
-function Header({ pratosPedido, onAlterarQuantidade, onRemoverPrato }) {
+function Header({ pratosPedido, onAlterarQuantidade, onRemoverPrato, onLimparCarrinho }) {
   const headerRef = useRef(null)
   const [aberto, setAberto] = useState(false)
   const [carrinhoAberto, setCarrinhoAberto] = useState(false)
@@ -48,7 +48,8 @@ function Header({ pratosPedido, onAlterarQuantidade, onRemoverPrato }) {
           </nav>
           <CarrinhoPopover pratos={pratosPedido} aberto={carrinhoAberto}
             onAbrir={() => { setAberto(false); setCarrinhoAberto(true) }} onFechar={fecharCarrinho}
-            onAlterarQuantidade={onAlterarQuantidade} onRemoverPrato={onRemoverPrato} />
+            onAlterarQuantidade={onAlterarQuantidade} onRemoverPrato={onRemoverPrato}
+            onLimparCarrinho={onLimparCarrinho} />
           <button type="button" onClick={() => { fecharCarrinho(); setAberto(!aberto) }}
             aria-expanded={aberto} aria-controls="menu-mobile" aria-label={aberto ? 'Fechar menu' : 'Abrir menu'}
             className="md:hidden p-2 rounded-full hover:bg-white/10">

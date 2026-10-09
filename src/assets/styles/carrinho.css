@@ -32,6 +32,10 @@
 .carrinho-quantidade span { min-width: 24px; text-align: center; font-weight: 700; }
 .carrinho-rodape { flex-shrink: 0; padding: 16px 20px 18px; border-top: 1px solid #eee7df; }
 .carrinho-subtotal { display: flex; justify-content: space-between; gap: 1rem; font-size: 1.15rem; }
+.carrinho-limpar { display: flex; align-items: center; justify-content: center; gap: .5rem; width: 100%; min-height: 40px; margin-top: .5rem; border: 0; border-radius: 6px; background: transparent; color: #a94732; font-size: .85rem; font-weight: 600; cursor: pointer; }
+.carrinho-limpar:hover:not(:disabled) { background: #f6e9e4; }
+.carrinho-limpar:disabled { color: #9d9189; cursor: not-allowed; }
+.carrinho-limpar svg { width: 17px; height: 17px; }
 .carrinho-rodape p { margin: .5rem 0 1rem; color: #766e67; font-size: .8rem; }
 .carrinho-finalizar { display: flex; align-items: center; justify-content: center; gap: .65rem; width: 100%; min-height: 46px; border: 0; border-radius: 8px; background: var(--color-terracota); color: white; font-weight: 700; cursor: pointer; }
 .carrinho-finalizar svg { width: 20px; height: 20px; }

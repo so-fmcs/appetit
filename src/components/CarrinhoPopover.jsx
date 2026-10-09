@@ -6,7 +6,7 @@ import "../assets/styles/carrinho.css";
 
 const moeda = (valor) => valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-function CarrinhoPopover({ pratos, aberto, onAbrir, onFechar, onAlterarQuantidade, onRemoverPrato }) {
+function CarrinhoPopover({ pratos, aberto, onAbrir, onFechar, onAlterarQuantidade, onRemoverPrato, onLimparCarrinho }) {
   const grupoRef = useRef(null);
   const botaoRef = useRef(null);
   const fecharRef = useRef(null);
@@ -82,6 +82,9 @@ function CarrinhoPopover({ pratos, aberto, onAbrir, onFechar, onAlterarQuantidad
           </div>
           <div className="carrinho-rodape">
             <div className="carrinho-subtotal"><strong>Subtotal</strong><strong>{moeda(subtotal)}</strong></div>
+            <button className="carrinho-limpar" type="button" disabled={pratos.length === 0} onClick={onLimparCarrinho}>
+              <Trash2 aria-hidden="true" /> Limpar carrinho
+            </button>
             <p>Entrega calculada na próxima etapa.</p>
             <button className="carrinho-finalizar" type="button" disabled={quantidadeTotal === 0} onClick={() => { onFechar(); navigate("/pedido"); }}>Finalizar pedido <ArrowRight aria-hidden="true" /></button>
             <button className="carrinho-continuar" type="button" onClick={fecharComFoco}>Continuar escolhendo</button>

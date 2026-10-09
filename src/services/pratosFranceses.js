@@ -1,3 +1,5 @@
+import { infoPratos } from "../data/infoPratos.js";
+
 const API_BASE = "https://www.themealdb.com/api/json/v1/1";
 
 const categorias = {
@@ -68,7 +70,8 @@ export async function buscarPratosFranceses(signal) {
       imagem: prato.strMealThumb,
       categoria,
       preco: precos[categoria],
-      descricao: resumirReceita(prato.strInstructions, 100),
+      // Usa os textos do redesign quando disponíveis, mantendo o ID e preço atuais.
+      descricao: infoPratos[prato.idMeal]?.resumo ?? resumirReceita(prato.strInstructions, 100),
       instrucoes: resumirReceita(prato.strInstructions),
     };
   });

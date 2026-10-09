@@ -1,7 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
-import PedidoProvider from "./context/PedidoProvider";
 import Home from "./pages/Home";
 import Pedido from "./pages/Pedido";
 import Pratos from "./pages/Pratos";
@@ -33,9 +32,13 @@ function App() {
     setPratosPedido((atuais) => atuais.filter((item) => item.id !== id));
   }
 
+  function limparCarrinho() {
+    setPratosPedido([]);
+  }
+
   return (
     <BrowserRouter>
-      <Header pratosPedido={pratosPedido} onAlterarQuantidade={alterarQuantidade} onRemoverPrato={removerPrato} />
+      <Header pratosPedido={pratosPedido} onAlterarQuantidade={alterarQuantidade} onRemoverPrato={removerPrato} onLimparCarrinho={limparCarrinho} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pedido" element={<Pedido pratosPedido={pratosPedido} setPratosPedido={setPratosPedido} />} />

@@ -1,91 +1,93 @@
 import { Minus, Plus } from "lucide-react";
+import { infoPratos } from "../data/infoPratos";
 
 function CardCardapio({
   prato,
   quantidade = 0,
-  onAbrirDetalhes,
   onAlterarQuantidade,
+  onAbrirDetalhes,
 }) {
-  const nome = prato?.nome ?? prato?.strMeal ?? "";
-  const descricao = prato?.descricao ?? "";
-  const categoria = prato?.categoria ?? prato?.strCategory ?? "";
-  const imagem = prato?.imagem ?? prato?.strMealThumb ?? "";
-  const preco = prato?.preco != null
-    ? Number(prato.preco).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })
-    : "";
+  const categoria = prato.categoria;
+  const preco = prato.preco;
+  const resumo = infoPratos[prato.id]?.resumo ?? prato.descricao;
 
   return (
-    <li>
-      <article className="prato-card h-full rounded-3xl border border-bege-areia bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md">
+    <li className="min-w-0"><article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-bege-areia bg-white transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_14px_30px_-12px_rgba(74,55,40,0.35)] motion-reduce:transition-none">
+      <div className="relative aspect-4/3 overflow-hidden">
+        <img
+          src={prato.imagem}
+          alt={prato.nome}
+          loading="lazy"
+          className="size-full object-cover transition duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none"
+        />
+        {categoria && (
+          <span className="absolute left-3 top-3 rounded-full bg-creme/95 px-3.5 py-1.5 text-sm font-bold">
+            {categoria}
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 px-5 pb-5 pt-5">
+        <h3 className="font-titulo text-3xl font-bold uppercase leading-tight text-marrom-escuro">
+          {prato.nome}
+        </h3>
+        {resumo && (
+          <p className="text-base leading-snug text-marrom-escuro/80">{resumo}</p>
+        )}
         <button
           type="button"
-          onClick={() => onAbrirDetalhes?.(prato)}
-          className="prato-card__imagem-botao"
-          aria-label={`Ver detalhes de ${nome}`}
+          onClick={() => onAbrirDetalhes(prato)}
+          aria-haspopup="dialog"
+          className="self-start py-2 text-base font-bold underline decoration-bege-areia underline-offset-4 transition hover:text-terracota-escuro hover:decoration-terracota-escuro"
         >
-          <img
-            src={imagem}
-            alt={nome}
-            loading="lazy"
-            className="prato-card__imagem h-56 w-full rounded-2xl object-cover"
-          />
+          Ver detalhes
+          <span className="sr-only"> de {prato.nome}</span>
         </button>
-        <div className="prato-card__corpo px-1 pb-1 pt-3">
-          <button
-            type="button"
-            onClick={() => onAbrirDetalhes?.(prato)}
-            className="prato-card__detalhes"
-            aria-label={`Abrir receita de ${nome}`}
-          >
-            <p className="prato-card__categoria">{categoria}</p>
-            <h3 className="prato-card__nome mt-1 font-titulo text-2xl font-bold uppercase leading-tight text-marrom-escuro">
-              {nome}
-            </h3>
-            <p className="prato-card__descricao">{descricao || ""}</p>
-          </button>
-          <footer className="prato-card__rodape">
-            <span className="prato-card__preco">{preco}</span>
-            {quantidade === 0 ? (
+
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-dashed border-bege-areia pt-3">
+          <span className="font-titulo text-3xl font-bold">
+            {preco.toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            })}
+          </span>
+
+          {quantidade > 0 ? (
+            <div className="flex items-center gap-1 rounded-full bg-creme p-0.5">
               <button
                 type="button"
-                onClick={() => onAlterarQuantidade?.(prato, 1)}
-                aria-label={`Adicionar ${nome} ao pedido`}
-                className="prato-card__adicionar flex-1 rounded-full border border-bege-areia px-4 py-3 text-base font-semibold text-marrom-escuro transition hover:border-terracota hover:text-terracota"
+                aria-label={`Diminuir quantidade de ${prato.nome}`}
+                onClick={() => onAlterarQuantidade(prato, -1)}
+                className="flex size-11 items-center justify-center rounded-full border border-bege-areia bg-white transition hover:border-terracota-escuro"
               >
-                <Plus aria-hidden="true" /> Adicionar
+                <Minus aria-hidden="true" className="size-4.5" />
               </button>
-            ) : (
-              <div
-                className="prato-card__quantidade"
-                role="group"
-                aria-label={`Quantidade de ${nome} no pedido`}
+              <span className="min-w-8 text-center text-lg font-bold" aria-live="polite">
+                {quantidade}
+              </span>
+              <button
+                type="button"
+                aria-label={`Aumentar quantidade de ${prato.nome}`}
+                onClick={() => onAlterarQuantidade(prato, 1)}
+                className="flex size-11 items-center justify-center rounded-full bg-terracota-escuro text-white transition hover:bg-marrom-escuro"
               >
-                <button
-                  type="button"
-                  onClick={() => onAlterarQuantidade?.(prato, -1)}
-                  aria-label={`Remover uma unidade de ${nome}`}
-                  className="prato-card__quantidade-botao"
-                >
-                  <Minus aria-hidden="true" />
-                </button>
-                <span aria-live="polite">{quantidade}</span>
-                <button
-                  type="button"
-                  onClick={() => onAlterarQuantidade?.(prato, 1)}
-                  aria-label={`Adicionar mais uma unidade de ${nome}`}
-                  className="prato-card__quantidade-botao prato-card__quantidade-botao--mais"
-                >
-                  <Plus aria-hidden="true" />
-                </button>
-              </div>
-            )}
-          </footer>
+                <Plus aria-hidden="true" className="size-4.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              aria-label={`Adicionar ${prato.nome} ao pedido`}
+              onClick={() => onAlterarQuantidade(prato, 1)}
+              className="flex h-12 items-center gap-1.5 rounded-full bg-terracota-escuro px-5 text-base font-bold text-white transition hover:bg-marrom-escuro"
+            >
+              <Plus aria-hidden="true" className="size-4.5" />
+              Adicionar
+            </button>
+          )}
         </div>
-      </article>
-    </li>
+      </div>
+    </article></li>
   );
 }
 
