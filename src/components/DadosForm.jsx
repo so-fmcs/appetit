@@ -10,6 +10,7 @@ function EtapaDados({ erros = {} }) {
         <div className="campo campo--nome">
           <label htmlFor="nome">Nome completo</label>
           <input
+            placeholder="Como podemos chamar você?"
             id="nome"
             name="nome"
             aria-invalid={Boolean(erros.nome)}
@@ -58,7 +59,7 @@ function EtapaDados({ erros = {} }) {
             id="observacoes"
             name="observacoes"
             placeholder="Alergias, restrições ou um recado para a cozinha"
-            rows={4}
+            rows={3}
           />
         </div>
       </div>

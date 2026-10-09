@@ -1,8 +1,15 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 
-function PratoItem({ prato, quantidade, onAlterarQuantidade, onRemover, mostrarQuantidade = false }) {
+function PratoItem({ prato, quantidade, onAlterarQuantidade, onRemover, mostrarQuantidade = false, compacto = false }) {
+  const descricao = prato.descricao?.replace(/\s+/g, " ").trim() ?? "";
+  const descricaoResumida = descricao.length > 140
+    ? `${descricao.slice(0, 137).trimEnd()}...`
+    : descricao;
+
+  const moeda = (valor) => valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
   return (
-    <article className={`prato-item${quantidade > 0 ? " prato-item--selecionado" : ""}`}>
+    <article className={`prato-item${quantidade > 0 ? " prato-item--selecionado" : ""}${compacto ? " prato-item--compacto" : ""}`}>
       <img
         src={prato.imagem}
         alt={prato.nome}
@@ -14,15 +21,13 @@ function PratoItem({ prato, quantidade, onAlterarQuantidade, onRemover, mostrarQ
 
       <div className="prato-item__info">
         <h3>{prato.nome}</h3>
-        <p>{prato.descricao}</p>
+        <p>{compacto ? `${moeda(prato.preco)} cada` : descricaoResumida}</p>
       </div>
 
       <div className="preco-quantidade">
         <span className="prato-item__preco">
-          {prato.preco.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          })}
+          {/* Na revisão, mostra o valor da linha; o preço unitário fica sob o nome. */}
+          {moeda(compacto ? prato.preco * quantidade : prato.preco)}
         </span>
         {quantidade > 0 || mostrarQuantidade ? (
           <>

@@ -1,18 +1,16 @@
 function CabecalhoPratos() {
   return (
-    <section className="mx-auto flex largura-site flex-col items-center gap-8 px-6 pb-10 pt-14 md:flex-row md:justify-between">
+    <section className="app-container mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-6 py-12 lg:grid-cols-2">
       <div>
-        <p className="mb-3 font-titulo text-base uppercase tracking-[0.3em] md:text-lg text-terracota-escuro">
+        <p className="mb-2 font-titulo text-sm uppercase tracking-[0.2em] text-terracota">
           La carte
         </p>
-
-        <h1 className="font-titulo text-6xl font-bold uppercase leading-[0.95] text-marrom-escuro md:text-7xl lg:text-8xl">
+        <h1 className="font-titulo text-6xl font-bold uppercase text-marrom-escuro">
           Nosso cardápio
         </h1>
-
-        <p className="mt-5 max-w-2xl text-xl leading-relaxed text-marrom-escuro/85 md:text-2xl">
-          Clássicos da cozinha francesa, feitos na hora. Escolha um prato, veja
-          os detalhes e monte seu pedido.
+        <p className="mt-3 max-w-2xl text-base text-marrom-escuro/80">
+          Clássicos da cozinha francesa, feitos na hora. Escolha um prato,
+          veja os detalhes e monte seu pedido.
         </p>
       </div>
 
