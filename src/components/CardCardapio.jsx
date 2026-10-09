@@ -89,7 +89,4 @@ function CardCardapio({
   );
 }
 
-  );
-}
-
 export default CardCardapio;

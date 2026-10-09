@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useEffect, useState } from "react";
 import CardCardapio from "../components/CardCardapio";
 import CabecalhoPratos from "../components/CabecalhoPratos";
 import FiltrosPratos from "../components/FiltrosPratos";
@@ -152,10 +151,6 @@ function Pratos({ pratosPedido = [], onAlterarQuantidade }) {
         prato={pratoDetalhe}
         onClose={() => setPratoDetalhe(null)}
       />
-    </main>
-  );
-}
-
     </main>
   );
 }

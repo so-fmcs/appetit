@@ -2,8 +2,6 @@ import { Search } from "lucide-react";
 
 function FiltrosPratos({
   busca,
-function FiltrosPratos({
-  busca,
   onBuscaChange,
   categorias,
   categoriaSelecionada,
@@ -62,6 +60,8 @@ function FiltrosPratos({
         )}
       </div>
 
+      {/* Mantém os filtros agrupados e fecha o container já existente abaixo. */}
+      <div className="pratos-categorias">
         {categorias.map((categoria) => (
           <button
             key={categoria}
