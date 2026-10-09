@@ -9,7 +9,7 @@ const links = [
 ]
 
 const estiloLink = ({ isActive }) =>
-  'hover:text-white transition duration-300 motion-reduce:transition-none ' +
+  'hover:text-white hover:-translate-y-1 transition duration-300 ease-out motion-reduce:transition-none ' +
   (isActive ? 'underline decoration-terracota decoration-4 underline-offset-8' : '')
 
 function Header({ pratosPedido, onAlterarQuantidade, onRemoverPrato, onLimparCarrinho }) {
@@ -37,7 +37,7 @@ function Header({ pratosPedido, onAlterarQuantidade, onRemoverPrato, onLimparCar
     <header ref={headerRef} className="sticky top-0 z-50 bg-marrom-escuro text-bege-areia">
       <div className="app-container site-header__inner">
         <Link to="/" onClick={fecharNavegacao} className="group flex flex-col items-center font-titulo text-3xl font-bold uppercase tracking-wide leading-none">
-          <Rat aria-hidden="true" className="size-6" />
+          <Rat aria-hidden="true" className="size-6 transition duration-300 ease-out group-hover:-translate-y-1 motion-reduce:transition-none" />
           <span>Appetit<span className="text-terracota" aria-hidden="true">.</span></span>
         </Link>
         <div className="site-header__acoes">
