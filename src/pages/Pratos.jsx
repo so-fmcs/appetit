@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CardCardapio from "../components/CardCardapio";
 import CabecalhoPratos from "../components/CabecalhoPratos";
 import FiltrosPratos from "../components/FiltrosPratos";
@@ -16,6 +17,17 @@ const categoriasCardapio = [
   "Acompanhamentos",
 ];
 
+const categoriasDaApi = {
+  Carnes: ["Beef", "Lamb", "Pork", "Goat"],
+  Massas: ["Pasta"],
+  Saladas: ["Starter"],
+  Vegetarianos: ["Vegetarian", "Vegan"],
+  Aves: ["Chicken"],
+  Peixes: ["Seafood"],
+  Acompanhamentos: ["Side", "Miscellaneous"],
+  Sobremesas: ["Dessert"],
+};
+
 function normalizar(texto) {
   return texto
     .normalize("NFD")
@@ -23,7 +35,7 @@ function normalizar(texto) {
     .toLocaleLowerCase("pt-BR");
 }
 
-function Pratos({ pratosPedido, onAlterarQuantidade }) {
+function Pratos({ pratosPedido = [], onAlterarQuantidade }) {
   const [pratos, setPratos] = useState([]);
   const [busca, setBusca] = useState("");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
@@ -34,8 +46,12 @@ function Pratos({ pratosPedido, onAlterarQuantidade }) {
 
   useEffect(() => {
     const controlador = new AbortController();
+
     buscarPratosFranceses(controlador.signal)
-      .then(setPratos)
+      .then((dados) => {
+        const itens = Array.isArray(dados) ? dados : dados?.meals ?? [];
+        setPratos(itens);
+      })
       .catch((erroBusca) => {
         if (erroBusca.name !== "AbortError") setErro(true);
       })
@@ -47,20 +63,36 @@ function Pratos({ pratosPedido, onAlterarQuantidade }) {
   }, []);
 
   const pratosFiltrados = pratos.filter((prato) => {
-    const correspondeCategoria = categoriaSelecionada === "Todos" ||
-      prato.categoria === categoriaSelecionada;
-    const correspondeBusca = normalizar(`${prato.nome} ${prato.descricao ?? ""}`)
-      .includes(normalizar(busca));
+    const nome = prato?.nome ?? prato?.strMeal ?? "";
+    const descricao = prato?.descricao ?? prato?.strInstructions ?? "";
+    const categoria = prato?.categoria ?? prato?.strCategory ?? "";
+    const correspondeCategoria =
+      categoriaSelecionada === "Todos" ||
+      categoria === categoriaSelecionada ||
+      (categoriasDaApi[categoriaSelecionada] ?? []).includes(categoria);
+    const correspondeBusca = normalizar(`${nome} ${descricao}`).includes(
+      normalizar(busca),
+    );
     return correspondeCategoria && correspondeBusca;
   });
+
   const pratosOrdenados = [...pratosFiltrados];
 
   if (ordenacao === "menor-preco") {
-    pratosOrdenados.sort((a, b) => a.preco - b.preco);
+    pratosOrdenados.sort(
+      (a, b) => (Number(a.preco ?? 0) || 0) - (Number(b.preco ?? 0) || 0),
+    );
   } else if (ordenacao === "maior-preco") {
-    pratosOrdenados.sort((a, b) => b.preco - a.preco);
+    pratosOrdenados.sort(
+      (a, b) => (Number(b.preco ?? 0) || 0) - (Number(a.preco ?? 0) || 0),
+    );
   } else if (ordenacao === "nome") {
-    pratosOrdenados.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    pratosOrdenados.sort((a, b) =>
+      (a.nome ?? a.strMeal ?? "").localeCompare(
+        b.nome ?? b.strMeal ?? "",
+        "pt-BR",
+      ),
+    );
   }
 
   return (
@@ -71,14 +103,24 @@ function Pratos({ pratosPedido, onAlterarQuantidade }) {
           <FiltrosPratos
             busca={busca}
             onBuscaChange={setBusca}
-            categorias={categoriasCardapio}
+            categorias={[
+              "Todos",
+              ...new Set([
+                ...categoriasCardapio.filter((categoria) => categoria !== "Todos"),
+                ...Object.keys(categoriasDaApi),
+              ]),
+            ]}
             categoriaSelecionada={categoriaSelecionada}
             onCategoriaChange={setCategoriaSelecionada}
             ordenacao={ordenacao}
             onOrdenacaoChange={setOrdenacao}
             quantidade={pratosFiltrados.length}
           />
-          {carregando && <p className="pratos-estado" role="status">Carregando pratos...</p>}
+          {carregando && (
+            <p className="pratos-estado" role="status">
+              Carregando pratos...
+            </p>
+          )}
           {erro && (
             <p className="pratos-estado" role="alert">
               Não foi possível carregar os pratos agora. Tente recarregar a página.
@@ -92,9 +134,13 @@ function Pratos({ pratosPedido, onAlterarQuantidade }) {
           <ul className="pratos-grade">
             {pratosOrdenados.map((prato) => (
               <CardCardapio
-                key={prato.id}
+                key={prato.id ?? prato.idMeal}
                 prato={prato}
-                quantidade={pratosPedido.find((item) => item.id === prato.id)?.quantidade ?? 0}
+                quantidade={
+                  pratosPedido.find(
+                    (item) => (item.id ?? item.idMeal) === (prato.id ?? prato.idMeal),
+                  )?.quantidade ?? 0
+                }
                 onAbrirDetalhes={setPratoDetalhe}
                 onAlterarQuantidade={onAlterarQuantidade}
               />
@@ -106,6 +152,10 @@ function Pratos({ pratosPedido, onAlterarQuantidade }) {
         prato={pratoDetalhe}
         onClose={() => setPratoDetalhe(null)}
       />
+    </main>
+  );
+}
+
     </main>
   );
 }
