@@ -1,4 +1,3 @@
- feature/pratos
 import Hero from "../components/Hero";
 import PratoDaCasa from "../components/PratoDaCasa";
 import NossaHistoria from "../components/NossaHistoria";

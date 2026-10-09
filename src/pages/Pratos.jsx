@@ -1,179 +1,111 @@
-import { Search, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import CardCardapio from "../components/CardCardapio";
+import CabecalhoPratos from "../components/CabecalhoPratos";
+import FiltrosPratos from "../components/FiltrosPratos";
+import ModalDetalhesPrato from "../components/ModalDetalhesPrato";
+import "../assets/styles/pratos.css";
+import { buscarPratosFranceses } from "../services/pratosFranceses";
 
-//filtrando as categorias
-const categorias = [
+const categoriasCardapio = [
   "Todos",
   "Carnes",
-  "Massas",
-  "Saladas",
-  "Vegetarianos",
   "Aves",
   "Peixes",
-  "Acompanhamentos",
+  "Vegetarianos",
   "Sobremesas",
+  "Acompanhamentos",
 ];
 
-//pratos de exemplo, apenas para montar a estrutura (é para vir da API depois)
-const pratosExemplo = [
-  {
-    id: 1,
-    nome: "Ratatouille",
-    categoria: "Vegetarianos",
-    preco: 42,
-    imagem: "/ratatouille.jpg",
-  },
-  {
-    id: 2,
-    nome: "Coq au Vin",
-    categoria: "Aves",
-    preco: 35,
-    imagem: "/ratatouille.jpg",
-  },
-  {
-    id: 3,
-    nome: "Lasanha",
-    categoria: "Massas",
-    preco: 30,
-    imagem: "/ratatouille.jpg",
-  },
-  {
-    id: 4,
-    nome: "Tarte Tatin",
-    categoria: "Sobremesas",
-    preco: 25,
-    imagem: "/ratatouille.jpg",
-  },
-];
-function Pratos() {
+function normalizar(texto) {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR");
+}
+
+function Pratos({ pratosPedido, onAlterarQuantidade }) {
+  const [pratos, setPratos] = useState([]);
+  const [busca, setBusca] = useState("");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("Todos");
+  const [ordenacao, setOrdenacao] = useState("destaques");
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(false);
+  const [pratoDetalhe, setPratoDetalhe] = useState(null);
+
+  useEffect(() => {
+    const controlador = new AbortController();
+    buscarPratosFranceses(controlador.signal)
+      .then(setPratos)
+      .catch((erroBusca) => {
+        if (erroBusca.name !== "AbortError") setErro(true);
+      })
+      .finally(() => {
+        if (!controlador.signal.aborted) setCarregando(false);
+      });
+
+    return () => controlador.abort();
+  }, []);
+
+  const pratosFiltrados = pratos.filter((prato) => {
+    const correspondeCategoria = categoriaSelecionada === "Todos" ||
+      prato.categoria === categoriaSelecionada;
+    const correspondeBusca = normalizar(`${prato.nome} ${prato.descricao ?? ""}`)
+      .includes(normalizar(busca));
+    return correspondeCategoria && correspondeBusca;
+  });
+  const pratosOrdenados = [...pratosFiltrados];
+
+  if (ordenacao === "menor-preco") {
+    pratosOrdenados.sort((a, b) => a.preco - b.preco);
+  } else if (ordenacao === "maior-preco") {
+    pratosOrdenados.sort((a, b) => b.preco - a.preco);
+  } else if (ordenacao === "nome") {
+    pratosOrdenados.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  }
+
   return (
-    <main>
-      {/* 1 cabeçalho da pagina */}
-      <section className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-6 py-12 lg:grid-cols-2">
-        <div>
-          <p className="mb-2 font-titulo text-6x1 uppercase tracking-[0.2em] text-terracota">
-            La carte
-          </p>
-
-          <h1 className="font-titulo text-6xl font-bold uppercase text-marrom-escuro">
-            Nosso cardápio
-          </h1>
-
-          <p className="mt-3 max-w-2xl text-base text-marrom-escuro/80">
-            Clássicos da cozinha francesa, feitos na hora. Escolha um prato,
-            veja os detalhes e monte seu pedido.
-          </p>
-        </div>
-
-        <img
-          src="/quadroRatatouille.png"
-          alt="Quadro com uma ilustração de Ratatouille"
-          className="h-70 rounded-2xl object-cover sm:h-90 lg:translate-x-40 lg:translate-y-5"
-        />
-      </section>
-
-      {/* 2 busca e filtros*/}
-      <section
-        className="mx-auto max-w-7xl px-6 pb-8"
-        aria-label="Buscar e filtrar pratos"
-      >
-        <label htmlFor="busca" className="mb-2 block text-sm font-semibold">
-          Buscar Pratos
-        </label>
-        <div className="relative max-w-xl">
-          <Search
-            aria-hidden="true"
-            className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-marrom-escuro/60"
+    <main className="pagina-pratos">
+      <CabecalhoPratos />
+      <div className="pratos-layout">
+        <section className="pratos-catalogo" aria-label="Catálogo de pratos">
+          <FiltrosPratos
+            busca={busca}
+            onBuscaChange={setBusca}
+            categorias={categoriasCardapio}
+            categoriaSelecionada={categoriaSelecionada}
+            onCategoriaChange={setCategoriaSelecionada}
+            ordenacao={ordenacao}
+            onOrdenacaoChange={setOrdenacao}
+            quantidade={pratosFiltrados.length}
           />
-          <input
-            id="busca"
-            type="search"
-            placeholder="Ex.: Ratatouille"
-            className="w-full rounded-xl border border-bege-areia
-             bg-white py-4 text-base pl-10 pr-4 outline-none focus:border-terracota focus:ring-2
-              focus:ring-terracota/20"
-          />
-        </div>
-
-        <div
-          className="mt-5 flex flex-wrap gap-2"
-          role="group"
-          aria-label="Filtrar pratos por categoria"
-        >
-          {categorias.map((categoria) => (
-            <button
-              key={categoria}
-              type="button"
-              aria-pressed={categoria === "Todos"}
-              className={`rounded-full border px-4 py-2 text-sm transition ${
-                categoria === "Todos"
-                  ? "border-terracota bg-terracota text-white"
-                  : "border-bege-areia bg-white hover:border-terracota"
-              }`}
-            >
-              {categoria}
-            </button>
-          ))}
-        </div>
-        <p className="mt-5 text-sm text-marrom-escuro/70" aria-live="polite">
-          Mostrando {pratosExemplo.length} pratos
-        </p>
-      </section>
-
-      {/* 3 lista de pratos */}
-
-      <ul className="mx-auto grid max-w-7xl list-none grid-cols-1 gap-6 px-6 pb-12 sm:grid-cols-2 lg:grid-cols-3">
-        {pratosExemplo.map((prato) => (
-          <li key={prato.id}>
-            <article
-              className="h-full rounded-3xl border border-bege-areia
-            bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md"
-            >
-              <img
-                src={prato.imagem}
-                alt={prato.nome}
-                className="h-56 w-full rounded-2xl object-cover"
+          {carregando && <p className="pratos-estado" role="status">Carregando pratos...</p>}
+          {erro && (
+            <p className="pratos-estado" role="alert">
+              Não foi possível carregar os pratos agora. Tente recarregar a página.
+            </p>
+          )}
+          {!carregando && !erro && pratosFiltrados.length === 0 && (
+            <p className="pratos-estado" role="status">
+              Nenhum prato encontrado com esses filtros.
+            </p>
+          )}
+          <ul className="pratos-grade">
+            {pratosOrdenados.map((prato) => (
+              <CardCardapio
+                key={prato.id}
+                prato={prato}
+                quantidade={pratosPedido.find((item) => item.id === prato.id)?.quantidade ?? 0}
+                onAbrirDetalhes={setPratoDetalhe}
+                onAlterarQuantidade={onAlterarQuantidade}
               />
-
-              <div className="px-1 pb-1 pt-3">
-                <p className="text-sm font-semibold uppercase tracking-wide text-terracota">
-                  {prato.categoria}
-                </p>
-
-                <h2 className="mt-1 font-titulo text-2xl font-bold uppercase leading-tight text-marrom-escuro">
-                  {prato.nome}
-                </h2>
-
-                <p className="mt-2 text-lg font-semibold text-marrom-escuro">
-                  {prato.preco.toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-                </p>
-
-                <div className="mt-4 flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="flex-1 rounded-full border
-                 border-bege-areia px-4 py-3 text-base font-semibold text-marrom-escuro transition
-                  hover:border-terracota hover:text-terracota"
-                  >
-                    Ver detalhes
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-label={`Adicionar ${prato.nome} ao pedido`}
-                    className="flex size-12 items-center justify-center rounded-full bg-terracota
-                   text-white transition hover:bg-marrom-escuro"
-                  >
-                    <Plus aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            </article>
-          </li>
-        ))}
-      </ul>
+            ))}
+          </ul>
+        </section>
+      </div>
+      <ModalDetalhesPrato
+        prato={pratoDetalhe}
+        onClose={() => setPratoDetalhe(null)}
+      />
     </main>
   );
 }

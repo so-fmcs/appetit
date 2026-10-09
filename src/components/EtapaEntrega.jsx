@@ -1,3 +1,4 @@
+import { ShoppingBag, Truck } from "lucide-react";
 import ErroCampo from "./ErroCampo";
 import { enderecoRestaurante } from "../data/restaurante";
 
@@ -6,7 +7,7 @@ function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) 
   return (
     <section className="pedido-card etapa-entrega">
       <p className="etapa-entrega__rotulo">02 · LA LIVRAISON</p>
-      <h2 className="etapa-entrega__titulo">Como quer receber</h2>
+      <h2 className="etapa-entrega__titulo">Como quer receber?</h2>
 
       <div
         className="etapa-entrega__opcoes"
@@ -22,6 +23,7 @@ function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) 
             checked={tipoRecebimento === "retirada"}
             onChange={() => onTipoRecebimentoChange("retirada")}
           />
+          <ShoppingBag aria-hidden="true" className="opcao-recebimento__icone" />
           <span className="opcao-recebimento__texto">
             <strong>Retirar no bistrô</strong>
             <span>Sem taxa. Retire direto no balcão.</span>
@@ -37,6 +39,7 @@ function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) 
             onChange={() => onTipoRecebimentoChange("entrega")}
             required
           />
+          <Truck aria-hidden="true" className="opcao-recebimento__icone" />
           <span className="opcao-recebimento__texto">
             <strong>Entrega</strong>
             <span>Levamos até você. </span>
@@ -67,6 +70,7 @@ function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) 
             aria-describedby={entregaSelecionada && erros.cep ? "cep-erro" : undefined}
             placeholder="00000-000"
             autoComplete="postal-code"
+            inputMode="numeric"
             pattern="\d{5}-?\d{3}"
             title="Informe um CEP válido."
             required={entregaSelecionada}
@@ -92,6 +96,7 @@ function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) 
         <div className="campo campo--numero">
           <label htmlFor="numero">Número</label>
           <input
+            placeholder="Ex.: 120 ou S/N"
             id="numero"
             name="numero"
             disabled={!entregaSelecionada}
@@ -110,6 +115,7 @@ function EtapaEntrega({ tipoRecebimento, onTipoRecebimentoChange, erros = {} }) 
         <div className="campo campo--bairro">
           <label htmlFor="bairro">Bairro</label>
           <input
+            placeholder="Seu bairro"
             id="bairro"
             name="bairro"
             disabled={!entregaSelecionada}
