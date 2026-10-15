@@ -47,7 +47,7 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 
 ## Fluxo do pedido
 
-Depois que o cliente monta o carrinho, o pedido passa por três requisições ao backend em Spring Boot:
+Depois que o cliente monta o carrinho, o site usa estas rotas do backend em Spring Boot:
 
 | Etapa | Requisição | O que faz |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Depois que o cliente monta o carrinho, o pedido passa por três requisições ao
 
 ![Aviso "Pedido confirmado" no topo da página e a mensagem "Abrindo os detalhes do pedido…" com um indicador de carregamento](docs/pedido-confirmado.webp)
 
-**2. Acompanhamento.** A página do pedido mostra a referência, os itens e uma linha do tempo com as etapas. O status é consultado de novo a cada 5 segundos, então a etapa avança sozinha quando o restaurante atualiza o pedido no backend.
+**2. Acompanhamento.** A página do pedido mostra a referência, os itens e uma linha do tempo com as etapas. O backend verifica os pedidos em andamento a cada 5 segundos e, por padrão, avança o status após pelo menos 20 segundos em cada etapa. A página consulta o pedido a cada 5 segundos e mostra o status salvo no banco. Para retirada, a terceira etapa é `PRONTO_PARA_RETIRADA`; para entrega, `SAIU_PARA_ENTREGA`.
 
 ![Página "Acompanhe seu pedido" com o status "Pedido confirmado", a primeira etapa da linha do tempo destacada e as outras aguardando](docs/acompanhar-pedido-confirmado.webp)
 
@@ -127,7 +127,7 @@ As cores ficam no bloco `@theme` do `src/index.css`, e o Tailwind gera as classe
 
 ## Como rodar o projeto
 
-Pré-requisitos: [Node.js](https://nodejs.org) e Git instalados.
+Pré-requisitos: [Node.js](https://nodejs.org), Git e JDK 25 instalados.
 
 ```bash
 # 1. Clonar o repositório
@@ -182,8 +182,6 @@ Inicie o backend em outro terminal, com o JDK 25 selecionado:
 
 ```bash
 cd backend
-export JAVA_HOME=$(/usr/libexec/java_home -v 25)
-export PATH="$JAVA_HOME/bin:$PATH"
 ./mvnw spring-boot:run
 ```
 
@@ -196,11 +194,13 @@ Na raiz, rode `npm run dev`. O proxy do Vite encaminha `/api` para `http://local
 | GET | `/api/pedidos/{id}` | Dados, valores e status salvos |
 | PATCH | `/api/pedidos/{id}/status` | Atualização do andamento no backend |
 
+O `PATCH` permite alterar o status manualmente. Com `appetit.status-automatico.habilitado=true`, o agendador também avança pedidos em andamento; `CONCLUIDO` e `CANCELADO` não avançam. O intervalo e o tempo por etapa ficam em `backend/src/main/resources/application.properties`.
+
 O carrinho salvo é sincronizado com o catálogo ao abrir o app e o checkout, atualizando preços e removendo pratos indisponíveis. A confirmação fica bloqueada enquanto a consulta do checkout não terminar; em caso de falha, é possível tentar novamente.
 
 Após confirmar, acesse **Meus pedidos** no menu para reabrir o acompanhamento. O navegador guarda somente os IDs em `localStorage`; cada abertura consulta os detalhes no backend. O acompanhamento consulta novamente a cada 5 segundos até concluir ou cancelar. Em caso de falha, informa que os dados exibidos são da última consulta e permite tentar novamente.
 
-Esse histórico pertence ao navegador atual, sem sincronização entre dispositivos. A URL `/pedido/{id}` também permite abrir um pedido existente diretamente. Pedidos antigos `SIM-...` não existem no banco. Referências reais da antiga sessão são recuperadas quando disponíveis. O status só muda quando atualizado no backend: a interface não inventa progresso nem previsão de entrega.
+Esse histórico pertence ao navegador atual, sem sincronização entre dispositivos. A URL `/pedido/{id}` também permite abrir um pedido existente diretamente. Pedidos antigos `SIM-...` não existem no banco. Referências reais da antiga sessão são recuperadas quando disponíveis. O status muda no backend, pelo agendador ou pelo `PATCH`: a interface não inventa progresso nem previsão de entrega.
 
 ## Como contribuir (fluxo do grupo)
 
