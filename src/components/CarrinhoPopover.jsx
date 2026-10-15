@@ -47,7 +47,7 @@ function CarrinhoPopover({ pratos, aberto, onAbrir, onFechar, onAlterarQuantidad
       <button ref={botaoRef} className="carrinho-gatilho" type="button"
         onClick={aberto ? fecharComFoco : onAbrir} aria-expanded={aberto}
         aria-haspopup="dialog" aria-controls={aberto ? "carrinho-painel" : undefined}>
-        <ShoppingCart aria-hidden="true" /><span>Carrinho</span>
+        <ShoppingCart aria-hidden="true" />
         {/* Só aparece com itens; a key reinicia a animação a cada mudança de quantidade. */}
         {quantidadeTotal > 0 && (
           <span key={quantidadeTotal} className="carrinho-contador" aria-label={`${quantidadeTotal} ${quantidadeTotal === 1 ? "item" : "itens"}`}>{quantidadeTotal}</span>
