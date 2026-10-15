@@ -2,7 +2,7 @@
 
 Site de um bistrô francês fictício, com cardápio online e pedidos. Projeto acadêmico da disciplina de Desenvolvimento Web, desenvolvido em grupo pela organização **fmcs**.
 
-**Site no ar:** - Em andamento
+**Site no ar:** [appetit-liard.vercel.app](https://appetit-liard.vercel.app/)
 
 ---
 
@@ -17,9 +17,33 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | Página | O que tem | Status |
 | --- | --- | --- |
 | **Home** | Hero com janela francesa, carrossel "Pratos da casa" com pratos da API, seção "Nossa história" e rodapé | ✅ Pronta |
-| **Pratos** | Cardápio completo, busca, filtro por categoria e modal com detalhes do prato | 🚧 Em desenvolvimento |
+| **Pratos** | Cardápio completo, busca, filtro por categoria e modal com detalhes do prato | ✅ Pronta |
 | **Pedidos** | Checkout com validação e envio ao backend | ✅ Integrado |
 | **Meus pedidos** | Histórico neste navegador e acesso ao acompanhamento | ✅ Integrado |
+
+## Telas
+
+### Home
+
+| Computador | Celular |
+| --- | --- |
+| <img src="screenshots/home-desktop.png" alt="Home no computador: header, hero com a janela francesa e o início do carrossel Pratos da casa" width="560"> | <img src="screenshots/home-mobile.png" alt="Home no celular: header com carrinho e menu, título Bon appétit e a janela francesa" width="220"> |
+
+### Pratos
+
+| Computador | Celular |
+| --- | --- |
+| <img src="screenshots/pratos-desktop.png" alt="Página Pratos no computador: título Nosso cardápio, busca, ordenação e filtros por categoria" width="560"> | <img src="screenshots/pratos-mobile.png" alt="Página Pratos no celular: título, busca, ordenação e filtros" width="220"> |
+
+| Detalhes do prato | Carrinho no header |
+| --- | --- |
+| <img src="screenshots/pratos-modal-desktop.png" alt="Modal de detalhes do Beef Bourguignon com descrição, ingredientes e restrições alimentares" width="420"> | <img src="screenshots/carrinho-desktop.png" alt="Painel do carrinho aberto no header com dois pratos e o subtotal" width="420"> |
+
+### Pedido e Meus pedidos
+
+| Finalizar pedido | Meus pedidos |
+| --- | --- |
+| <img src="screenshots/pedido-desktop.png" alt="Checkout com os pratos escolhidos, a forma de receber e o resumo do pedido" width="420"> | <img src="screenshots/meus-pedidos-desktop.png" alt="Página Meus pedidos sem pedidos salvos neste navegador" width="420"> |
 
 ## Tecnologias
 
@@ -30,7 +54,9 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | [Tailwind CSS v4](https://tailwindcss.com) | Estilização com classes utilitárias |
 | [React Router](https://reactrouter.com) | Navegação entre páginas sem recarregar |
 | [Lucide](https://lucide.dev) | Ícones |
-| [TheMealDB](https://www.themealdb.com/api.php) | API pública com os pratos franceses |
+| [Spring Boot](https://spring.io/projects/spring-boot) + SQLite | Backend com o cardápio e os pedidos |
+| [Render](https://render.com) | Publicação do backend |
+| [TheMealDB](https://www.themealdb.com/api.php) | Origem dos pratos franceses e das fotos |
 | [Vercel](https://vercel.com) | Publicação do site |
 
 ## Requisitos do trabalho
@@ -100,15 +126,24 @@ npm run preview
 
 ```
 appetit/
+├── backend/             # API Spring Boot (cardápio e pedidos)
 ├── public/              # imagens e favicon
+├── screenshots/         # prints das telas usados neste README
+├── tests/               # testes (npm test)
 ├── index.html           # título da página, fontes e idioma
-├── vite.config.js       # plugins do React e do Tailwind
+├── vite.config.js       # plugins do React e do Tailwind, proxy da /api
+├── vercel.json          # rotas da Vercel e encaminhamento da /api ao backend
 └── src/
     ├── main.jsx         # ponto de entrada
-    ├── App.jsx          # header e rotas das páginas
+    ├── App.jsx          # header, carrinho e rotas das páginas
     ├── index.css        # Tailwind, cores, fontes e classes próprias
-    ├── pages/           # telas inteiras (Home, Pratos, Pedidos)
-    └── components/      # peças reutilizáveis (Header, Hero, CardPrato...)
+    ├── pages/           # telas inteiras (Home, Pratos, Pedido, Meus pedidos...)
+    ├── components/      # peças reutilizáveis (Header, Hero, CardPrato...)
+    ├── services/        # chamadas à API (pratos e pedidos)
+    ├── data/            # textos e dados fixos do restaurante
+    ├── utils/           # funções auxiliares (cálculos, armazenamento)
+    ├── context/         # contexto React do pedido
+    └── assets/styles/   # CSS do carrinho, pedido, acompanhamento e pratos
 ```
 
 ## API e acompanhamento de pedidos
