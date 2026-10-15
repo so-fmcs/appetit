@@ -17,8 +17,9 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | Página | O que tem | Status |
 | --- | --- | --- |
 | **Home** | Hero com janela francesa, carrossel "Pratos da casa" com pratos da API, seção "Nossa história" e rodapé | ✅ Pronta |
-| **Pratos** | Cardápio do backend, busca, filtro por categoria e modal com detalhes do prato | 🚧 Em desenvolvimento |
-| **Pedidos** | Itens escolhidos e formulário de pedido com validação | 🚧 Em desenvolvimento |
+| **Pratos** | Cardápio completo, busca, filtro por categoria e modal com detalhes do prato | 🚧 Em desenvolvimento |
+| **Pedidos** | Checkout com validação e envio ao backend | ✅ Integrado |
+| **Meus pedidos** | Histórico neste navegador e acesso ao acompanhamento | ✅ Integrado |
 
 ## Tecnologias
 
@@ -30,7 +31,6 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | [React Router](https://reactrouter.com) | Navegação entre páginas sem recarregar |
 | [Lucide](https://lucide.dev) | Ícones |
 | [TheMealDB](https://www.themealdb.com/api.php) | API pública com os pratos franceses |
-| Spring Boot e SQLite | API do cardápio e armazenamento de pratos e pedidos |
 | [Vercel](https://vercel.com) | Publicação do site |
 
 ## Requisitos do trabalho
@@ -41,7 +41,7 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | 2 componentes reutilizáveis | `CardPrato` (Home e Pratos) e componentes de interface compartilhados |
 | 3 interações | Menu mobile, pausa do carrossel, busca e filtro de pratos, modal de detalhes |
 | Formulário com 5+ campos validados | Formulário da página Pedidos |
-| 3 operações HTTP | `GET` real no backend e na TheMealDB; `POST` (enviar pedido) e `DELETE` (remover item) simulados |
+| 3 operações HTTP | `GET` de pratos e pedidos, `POST` de pedidos e `PATCH` de status na API Spring Boot |
 | WCAG AA e Lighthouse acima de 90 | Home com **100** de acessibilidade no Lighthouse, no desktop e no mobile |
 | Versionamento em grupo | Branches, commits semânticos e Pull Requests no GitHub |
 | Publicação | Vercel |
@@ -83,12 +83,7 @@ cd appetit
 # 2. Instalar as dependências
 npm install
 
-# 3. Rodar o backend em outro terminal (cria backend/appetit.db)
-cd backend
-mvn spring-boot:run
-
-# 4. Rodar o frontend em outro terminal, a partir da raiz do projeto
-cd ..
+# 3. Rodar em modo de desenvolvimento
 npm run dev
 ```
 
@@ -116,31 +111,33 @@ appetit/
     └── components/      # peças reutilizáveis (Header, Hero, CardPrato...)
 ```
 
-## API
+## API e acompanhamento de pedidos
 
-O cardápio e os preços vêm do SQLite pelo backend. O Vite encaminha `/api` para `http://localhost:8080` durante o desenvolvimento:
+O frontend usa `/api` por padrão e não simula confirmações. O backend Spring Boot mantém o cardápio e os pedidos no SQLite. As imagens dos pratos são hospedadas pela TheMealDB; textos editoriais e avaliações da home continuam sendo conteúdo demonstrativo do restaurante fictício.
 
-| Endpoint | Uso |
-| --- | --- |
-| `GET /api/pratos` | Lista os pratos disponíveis, incluindo `precoCentavos` |
-| `GET /api/pratos/{id}` | Consulta um prato disponível |
-| `POST /api/pedidos` | Valida e salva o pedido com os preços atuais do SQLite; retorna `{ "id": "..." }` |
-| `GET /api/pedidos/{id}` | Consulta status, dados, itens e valores do pedido salvo |
-| `PATCH /api/pedidos/{id}/status` | Atualiza o status de um pedido; recebe `{ "status": "EM_PREPARO" }` e devolve o ID e o status |
+Inicie o backend em outro terminal, com o JDK 25 selecionado:
 
-Os 28 pratos iniciais estão em `backend/src/main/resources/data.sql`. Para alterar um preço depois da primeira inicialização, edite o registro no banco; a carga inicial não sobrescreve registros existentes.
+```bash
+cd backend
+export JAVA_HOME=$(/usr/libexec/java_home -v 25)
+export PATH="$JAVA_HOME/bin:$PATH"
+./mvnw spring-boot:run
+```
 
-A [TheMealDB](https://www.themealdb.com/api.php) continua sendo usada para textos das receitas no cardápio:
+Na raiz, rode `npm run dev`. O proxy do Vite encaminha `/api` para `http://localhost:8080`, inclusive no `npm run preview`. Reinicie o Vite depois de alterar a configuração. Em produção, o host deve encaminhar `/api` ao backend; alternativamente, configure `VITE_API_URL` e autorize essa origem no CORS do servidor. As variáveis `VITE_` são públicas e não devem conter senhas.
 
-| Endpoint | Uso |
-| --- | --- |
-| `lookup.php?i={id}` | Detalhes e ingredientes de um prato |
+| Método | Rota | Uso |
+| --- | --- | --- |
+| GET | `/api/pratos` | Cardápio com preço e disponibilidade do banco |
+| POST | `/api/pedidos` | Confirmação com ID gerado pelo servidor |
+| GET | `/api/pedidos/{id}` | Dados, valores e status salvos |
+| PATCH | `/api/pedidos/{id}/status` | Atualização do andamento no backend |
 
-A TheMealDB não fornece preços. O checkout envia IDs e quantidades; o backend consulta os pratos, salva o nome e o preço unitário de cada item e devolve o ID do pedido. O frontend continua simulando o envio enquanto `VITE_API_URL` estiver vazio. Para usar o backend local, configure `VITE_API_URL=/api` em `.env.local`.
+O carrinho salvo é sincronizado com o catálogo ao abrir o app e o checkout, atualizando preços e removendo pratos indisponíveis. A confirmação fica bloqueada enquanto a consulta do checkout não terminar; em caso de falha, é possível tentar novamente.
 
-Os status aceitos no PATCH são `CONFIRMADO`, `EM_PREPARO`, `PRONTO_PARA_RETIRADA`, `SAIU_PARA_ENTREGA`, `CONCLUIDO` e `CANCELADO`. `PRONTO_PARA_RETIRADA` vale apenas para retirada; `SAIU_PARA_ENTREGA`, apenas para entrega. A tela de detalhes consulta o GET ao abrir e a cada 10 segundos enquanto estiver visível, mostrando o status e os valores salvos no servidor.
+Após confirmar, acesse **Meus pedidos** no menu para reabrir o acompanhamento. O navegador guarda somente os IDs em `localStorage`; cada abertura consulta os detalhes no backend. O acompanhamento consulta novamente a cada 5 segundos até concluir ou cancelar. Em caso de falha, informa que os dados exibidos são da última consulta e permite tentar novamente.
 
-Para a demonstração, o backend avança automaticamente uma etapa a cada 20 segundos (`CONFIRMADO` → `EM_PREPARO` → saída para entrega ou retirada → `CONCLUIDO`). O agendador verifica os pedidos a cada 5 segundos. O PATCH continua disponível para alterar o status manualmente e reinicia o tempo da etapa. Essas opções estão em `backend/src/main/resources/application.properties` e podem ser desativadas com `appetit.status-automatico.habilitado=false`.
+Esse histórico pertence ao navegador atual, sem sincronização entre dispositivos. A URL `/pedido/{id}` também permite abrir um pedido existente diretamente. Pedidos antigos `SIM-...` não existem no banco. Referências reais da antiga sessão são recuperadas quando disponíveis. O status só muda quando atualizado no backend: a interface não inventa progresso nem previsão de entrega.
 
 ## Como contribuir (fluxo do grupo)
 
@@ -152,11 +149,10 @@ Para a demonstração, o backend avança automaticamente uma etapa a cada 20 seg
 
 ## Equipe
 
-| Nome            | GitHub                                      |
-|-----------------|---------------------------------------------|
-| Ryan Alves      | [@s3vla](https://github.com/s3vla)          |
+| Nome | GitHub |
+| --- | --- |
+| Ryan Alves | [@s3vla](https://github.com/s3vla) |
 | Alexandre Wayss | [@alexandre-wayss](https://github.com/alexandre-wayss) |
-| Valter Glitz    | [@Darkalli](https://github.com/Darkalli)        |
 
 ## Créditos
 

@@ -7,6 +7,7 @@ import Pratos from "./pages/Pratos";
 import CarregamentoPedido from "./components/CarregamentoPedido";
 
 // Os detalhes são carregados quando a pessoa chega a essa etapa.
+const MeusPedidos = lazy(() => import("./pages/MeusPedidos"));
 const DetalhesPedido = lazy(() => import("./pages/DetalhesPedido"));
 import { lerPratosPedidoSalvos, salvarPratosPedido } from "./utils/pratosPedidoStorage";
 import { buscarPratosApi } from "./services/pratosApi";
@@ -58,6 +59,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pedido" element={<Pedido pratosPedido={pratosPedido} setPratosPedido={setPratosPedido} />} />
+        <Route path="/pedidos" element={<Suspense fallback={<CarregamentoPedido />}><MeusPedidos /></Suspense>} />
         <Route path="/pedido/:pedidoId" element={<Suspense fallback={<CarregamentoPedido />}><DetalhesPedido /></Suspense>} />
         <Route path="/pratos" element={<Pratos pratosPedido={pratosPedido} onAlterarQuantidade={alterarQuantidade} />} />
       </Routes>

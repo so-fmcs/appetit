@@ -1,66 +1,47 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ChefHat, CircleCheck, Clock, Copy, MapPin, Phone, ShoppingBag, Truck } from "lucide-react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { enderecoRestaurante } from "../data/restaurante";
-import { buscarPedidoApi } from "../services/pedidoApi";
-import { lerDetalhesPedido, salvarDetalhesPedido } from "../utils/detalhesPedidoStorage";
+import { consultarPedido } from "../services/enviarPedido";
+import { registrarPedido } from "../utils/historicoPedidos";
+import { descreverStatus } from "../utils/statusPedido";
 import "../assets/styles/acompanhamento.css";
 
 const moeda = (valor) => valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const textosStatus = {
-  CONFIRMADO: { titulo: "Pedido confirmado", descricao: "Seu pedido foi recebido pelo bistrô.", etapa: 0 },
-  EM_PREPARO: { titulo: "Pedido em preparo", descricao: "A cozinha está preparando seu pedido.", etapa: 1 },
-  PRONTO_PARA_RETIRADA: { titulo: "Pronto para retirada", descricao: "Seu pedido está pronto para retirada no bistrô.", etapa: 2 },
-  SAIU_PARA_ENTREGA: { titulo: "Saiu para entrega", descricao: "Seu pedido saiu para entrega.", etapa: 2 },
-  CONCLUIDO: { titulo: "Pedido concluído", descricao: "Seu pedido foi finalizado.", etapa: 3 },
-  CANCELADO: { titulo: "Pedido cancelado", descricao: "Este pedido foi cancelado.", etapa: -1 },
-};
 
 function DetalhesPedido() {
   const { pedidoId } = useParams();
-  return <ConteudoPedido key={pedidoId} pedidoId={pedidoId} />;
-}
 
-function ConteudoPedido({ pedidoId }) {
-  const location = useLocation();
   const [mensagemCopia, setMensagemCopia] = useState("");
-  const pedidoInicial = location.state?.pedido?.id === pedidoId
-    ? location.state.pedido : lerDetalhesPedido(pedidoId);
-  const [pedido, setPedido] = useState(pedidoInicial);
-  const [consulta, setConsulta] = useState(pedidoInicial || pedidoId?.startsWith("SIM-") ? "pronto" : "carregando");
+  const [resultado, setResultado] = useState(null);
+  const [erro, setErro] = useState("");
+  const [tentativa, setTentativa] = useState(0);
+  const pedido = resultado?.id === pedidoId ? resultado : null;
 
   useEffect(() => {
-    if (pedidoId?.startsWith("SIM-")) return;
-
-    const controller = new AbortController();
-    let ativo = true;
-    let consultando = false;
+    const controlador = new AbortController();
+    let temporizador;
     async function atualizar() {
-      if (consultando) return;
-      consultando = true;
       try {
-        const atualizado = await buscarPedidoApi(pedidoId, controller.signal);
-        if (!ativo) return;
-        setPedido(atualizado);
-        setConsulta("pronto");
-        salvarDetalhesPedido(atualizado);
+        const dados = await consultarPedido(pedidoId, { signal: controlador.signal });
+        if (controlador.signal.aborted) return;
+        registrarPedido(dados.id);
+        setResultado(dados);
+        setErro("");
+        // Uma nova consulta só começa após a anterior terminar.
+        if (!["CONCLUIDO", "CANCELADO"].includes(dados.status)) {
+          temporizador = setTimeout(atualizar, 5000);
+        }
       } catch {
-        if (ativo && !controller.signal.aborted) setConsulta("erro");
-      } finally {
-        consultando = false;
+        if (!controlador.signal.aborted) setErro("Não foi possível atualizar o pedido. Confira se o backend está disponível e tente novamente.");
       }
     }
-
     atualizar();
-    const intervalo = window.setInterval(() => {
-      if (document.visibilityState === "visible") atualizar();
-    }, 10000);
     return () => {
-      ativo = false;
-      controller.abort();
-      window.clearInterval(intervalo);
+      controlador.abort();
+      clearTimeout(temporizador);
     };
-  }, [pedidoId]);
+  }, [pedidoId, tentativa]);
 
   async function copiarReferencia() {
     try {
@@ -74,19 +55,22 @@ function ConteudoPedido({ pedidoId }) {
   if (!pedido) return (
     <main className="acompanhamento app-container">
       <span className="acompanhamento__rotulo">Commande</span>
-      <h1>{consulta === "carregando" ? "Carregando pedido…" : "Pedido indisponível"}</h1>
-      <p>{consulta === "carregando" ? "Consultando os detalhes do pedido." : "Não foi possível consultar este pedido no momento."}</p>
+      <h1>{erro ? "Pedido indisponível" : "Carregando pedido…"}</h1>
+      <p role={erro ? "alert" : "status"}>{erro || "Consultando os dados salvos no bistrô."}</p>
+      {erro && <button type="button" className="acompanhamento__botao" onClick={() => { setErro(""); setTentativa(atual => atual + 1); }}>Tentar novamente</button>}
+      <Link to="/pedidos" className="acompanhamento__voltar">Meus pedidos</Link>
       <Link to="/pratos" className="acompanhamento__botao">Voltar ao cardápio <ArrowRight aria-hidden="true" /></Link>
     </main>
   );
 
   const retirada = pedido.recebimento.tipo === "retirada";
   const endereco = pedido.recebimento.endereco;
-  const dataPedido = pedido.criadoEm ? new Date(pedido.criadoEm) : null;
-  const data = dataPedido && !Number.isNaN(dataPedido.getTime())
+  const dataPedido = new Date(pedido.criadoEm);
+  const data = !Number.isNaN(dataPedido.getTime())
     ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(dataPedido)
-    : null;
-  const statusAtual = textosStatus[pedido.status] || textosStatus.CONFIRMADO;
+    : "Data não disponível";
+  const situacao = descreverStatus(pedido.status, retirada);
+  // As etapas refletem o status recebido do servidor, sem avanço fictício.
   const etapas = [
     { nome: "Confirmado", Icone: CircleCheck },
     { nome: "Em preparo", Icone: ChefHat },
@@ -96,31 +80,25 @@ function ConteudoPedido({ pedidoId }) {
 
   return (
     <main className="acompanhamento app-container">
-      <Link to="/pratos" className="acompanhamento__voltar"><ArrowLeft aria-hidden="true" /> Voltar ao cardápio</Link>
+      <nav className="acompanhamento__navegacao" aria-label="Navegação do pedido">
+        <Link to="/pratos" className="acompanhamento__voltar"><ArrowLeft aria-hidden="true" /> Voltar ao cardápio</Link>
+        <Link to="/pedidos" className="acompanhamento__voltar">Meus pedidos</Link>
+      </nav>
+      {erro && <div role="alert" className="acompanhamento__card"><p>{erro} Exibindo a última consulta bem-sucedida.</p><button type="button" onClick={() => setTentativa(atual => atual + 1)}>Atualizar pedido</button></div>}
       <header className="acompanhamento__cabecalho">
         <div><span className="acompanhamento__rotulo">Merci beaucoup</span><h1>Acompanhe seu pedido</h1><p>Confira a confirmação e os detalhes do seu pedido.</p></div>
-        <div className="acompanhamento__referencia"><span>Referência do pedido</span><div><strong>{pedido.id}</strong><button type="button" onClick={copiarReferencia} aria-label="Copiar referência do pedido"><Copy aria-hidden="true" /></button></div><small>{data ? `Registrado em ${data}` : "Data do registro não disponível"}</small><span className="acompanhamento__copia" role="status">{mensagemCopia}</span></div>
+        <div className="acompanhamento__referencia"><span>Referência do pedido</span><div><strong>{pedido.id}</strong><button type="button" onClick={copiarReferencia} aria-label="Copiar referência do pedido"><Copy aria-hidden="true" /></button></div><small>Registrado em {data}</small><span className="acompanhamento__copia" role="status">{mensagemCopia}</span></div>
       </header>
 
       <section className="acompanhamento__card acompanhamento__status" aria-labelledby="status-pedido">
         <div className="acompanhamento__status-topo">
-          <div className="acompanhamento__situacao"><span className="acompanhamento__icone"><CircleCheck aria-hidden="true" /></span><div><span className="acompanhamento__rotulo">{pedido.simulado ? "Demonstração" : "Andamento do pedido"}</span><h2 id="status-pedido">{pedido.simulado ? "Simulação concluída" : statusAtual.titulo}</h2><p>{pedido.simulado ? "Este pedido é uma demonstração e não foi enviado ao bistrô." : statusAtual.descricao}</p></div></div>
-          <div className="acompanhamento__previsao"><Clock aria-hidden="true" /><div><span>{retirada ? "Previsão de retirada" : "Previsão de entrega"}</span><strong>{pedido.simulado ? "Não se aplica" : pedido.status === "CANCELADO" ? "Cancelado" : pedido.status === "CONCLUIDO" ? "Concluído" : "Ainda não informada"}</strong></div></div>
+          <div className="acompanhamento__situacao"><span className="acompanhamento__icone"><CircleCheck aria-hidden="true" /></span><div><span className="acompanhamento__rotulo">Status do pedido</span><h2 id="status-pedido">{situacao.titulo}</h2><p>Dados consultados no bistrô.</p></div></div>
+          <div className="acompanhamento__previsao"><Clock aria-hidden="true" /><div><span>{retirada ? "Previsão de retirada" : "Previsão de entrega"}</span><strong>Ainda não informada</strong></div></div>
         </div>
         <ol className="acompanhamento__etapas" aria-label="Etapas do pedido">{etapas.map(({ nome, Icone }, indice) => (
-          <li key={nome}
-            className={!pedido.simulado && indice === statusAtual.etapa ? "etapa--atual" : ""}
-            aria-current={!pedido.simulado && indice === statusAtual.etapa ? "step" : undefined}>
-            <span className="acompanhamento__etapa-icone"><Icone aria-hidden="true" /></span>
-            <strong>{nome}</strong>
-            <span>{pedido.simulado ? "Não iniciado" : pedido.status === "CANCELADO" ? "Interrompido"
-              : indice < statusAtual.etapa ? "Concluído" : indice === statusAtual.etapa ? "Etapa atual" : "Aguardando"}</span>
-          </li>
+          <li key={nome} className={indice === situacao.indice ? "etapa--atual" : ""} aria-current={indice === situacao.indice ? "step" : undefined}><span className="acompanhamento__etapa-icone"><Icone aria-hidden="true" /></span><strong>{nome}</strong><span>{indice === situacao.indice ? "Etapa atual" : indice < situacao.indice ? "Concluída" : pedido.status === "CANCELADO" ? "Interrompida" : "Aguardando"}</span></li>
         ))}</ol>
-        <p className="acompanhamento__nota">
-          As etapas acima mostram o fluxo de um pedido real.
-          {!pedido.simulado && consulta === "erro" && " Mostrando o último estado disponível. Não foi possível atualizar agora."}
-        </p>
+        <p className="acompanhamento__nota">{["CONCLUIDO", "CANCELADO"].includes(pedido.status) ? "Este pedido foi encerrado." : "O andamento é consultado automaticamente a cada 5 segundos."}</p>
       </section>
 
       <div className="acompanhamento__colunas">
