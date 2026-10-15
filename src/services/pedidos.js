@@ -52,13 +52,23 @@ export function normalizarPedido(dados) {
       || !Number.isFinite(dados.totalCentavos)) {
     throw new Error("O serviço retornou detalhes inválidos para o pedido.");
   }
+  if ([dados.subtotalCentavos, dados.taxaEntregaCentavos, dados.totalCentavos]
+      .some(valor => !Number.isInteger(valor) || valor < 0)) {
+    throw new Error("Os valores do pedido recebido são inválidos.");
+  }
   return {
     ...dados,
     simulado: false,
-    itens: dados.itens.map(item => ({
-      id: item.pratoId, nome: item.nomePrato, imagem: item.imagemUrl,
-      preco: item.precoUnitarioCentavos / 100, quantidade: item.quantidade,
-    })),
+    itens: dados.itens.map(item => {
+      if (!item?.pratoId || !Number.isInteger(item.quantidade) || item.quantidade <= 0
+          || !Number.isInteger(item.precoUnitarioCentavos) || item.precoUnitarioCentavos < 0) {
+        throw new Error("Os itens do pedido recebido são inválidos.");
+      }
+      return {
+        id: item.pratoId, nome: item.nomePrato, imagem: item.imagemUrl || "/ratatouille.jpg",
+        preco: item.precoUnitarioCentavos / 100, quantidade: item.quantidade,
+      };
+    }),
     valores: {
       quantidadeTotal: dados.itens.reduce((soma, item) => soma + item.quantidade, 0),
       subtotal: dados.subtotalCentavos / 100,

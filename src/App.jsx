@@ -10,6 +10,8 @@ import CarregamentoPedido from "./components/CarregamentoPedido";
 const MeusPedidos = lazy(() => import("./pages/MeusPedidos"));
 const DetalhesPedido = lazy(() => import("./pages/DetalhesPedido"));
 import { lerPratosPedidoSalvos, salvarPratosPedido } from "./utils/pratosPedidoStorage";
+import { buscarPratosApi } from "./services/pratosApi";
+import { sincronizarPratosPedido } from "./utils/sincronizarPratosPedido";
 
 function App() {
   // Uma única fonte de estado mantém cabeçalho, catálogo e checkout sincronizados.
@@ -18,6 +20,20 @@ function App() {
   useEffect(() => {
     salvarPratosPedido(pratosPedido);
   }, [pratosPedido]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    buscarPratosApi(controller.signal)
+      .then((catalogo) => {
+        if (!controller.signal.aborted) {
+          setPratosPedido((atuais) => sincronizarPratosPedido(atuais, catalogo));
+        }
+      })
+      .catch(() => {
+        // O checkout exige uma nova consulta antes de confirmar o pedido.
+      });
+    return () => controller.abort();
+  }, []);
 
   function alterarQuantidade(prato, variacao) {
     setPratosPedido((atuais) => {

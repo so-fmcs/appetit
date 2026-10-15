@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import CardPrato from "./CardPrato";
 import { Pause, Play, RefreshCw } from "lucide-react";
-import { buscarPratos } from "../services/cardapio";
+import { buscarPratosApi } from "../services/pratosApi";
 
 const avaliacoes = [
   {
@@ -38,9 +38,10 @@ function PratosDaCasa() {
 
   useEffect(() => {
     const controller = new AbortController();
-    buscarPratos({ signal: controller.signal })
+    buscarPratosApi(controller.signal)
       .then((dados) => {
-        setPratos(dados);
+        if (controller.signal.aborted) return;
+        setPratos(dados.slice(0, avaliacoes.length));
         setStatus(dados.length > 0 ? "pronto" : "indisponivel");
       })
       .catch(() => {
@@ -134,9 +135,9 @@ function PratosDaCasa() {
               <div className="flex gap-6 pr-6">
                 {pratos.map((prato, i) => (
                   <CardPrato
-                    key={prato.idMeal}
-                    nome={prato.strMeal}
-                    imagem={prato.strMealThumb}
+                    key={prato.id}
+                    nome={prato.nome}
+                    imagem={prato.imagemUrl}
                     nota={avaliacoes[i].nota}
                     comentario={avaliacoes[i].comentario}
                     cliente={avaliacoes[i].cliente}
@@ -150,9 +151,9 @@ function PratosDaCasa() {
               >
                 {pratos.map((prato, i) => (
                   <CardPrato
-                    key={prato.idMeal}
-                    nome={prato.strMeal}
-                    imagem={prato.strMealThumb}
+                    key={prato.id}
+                    nome={prato.nome}
+                    imagem={prato.imagemUrl}
                     nota={avaliacoes[i].nota}
                     comentario={avaliacoes[i].comentario}
                     cliente={avaliacoes[i].cliente}

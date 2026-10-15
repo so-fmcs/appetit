@@ -65,7 +65,10 @@ function DetalhesPedido() {
 
   const retirada = pedido.recebimento.tipo === "retirada";
   const endereco = pedido.recebimento.endereco;
-  const data = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(pedido.criadoEm));
+  const dataPedido = new Date(pedido.criadoEm);
+  const data = !Number.isNaN(dataPedido.getTime())
+    ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(dataPedido)
+    : "Data não disponível";
   const situacao = descreverStatus(pedido.status, retirada);
   // As etapas refletem o status recebido do servidor, sem avanço fictício.
   const etapas = [

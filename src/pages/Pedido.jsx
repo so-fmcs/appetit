@@ -11,6 +11,8 @@ import "../assets/styles/pedido.css";
 import "../assets/styles/finalizacao.css";
 import { validarPedido } from "../utils/validarPedido";
 import { montarPedido } from "../utils/montarPedido";
+import { buscarPratosApi } from "../services/pratosApi";
+import { sincronizarPratosPedido } from "../utils/sincronizarPratosPedido";
 import { enviarPedido } from "../services/enviarPedido";
 import { registrarPedido } from "../utils/historicoPedidos";
 import CarregamentoPedido from "../components/CarregamentoPedido";
@@ -31,6 +33,8 @@ function Pedido({ pratosPedido, setPratosPedido }) {
   const [erros, setErros] = useState({});
   const [tentouConfirmar, setTentouConfirmar] = useState(false);
   const [statusEnvio, setStatusEnvio] = useState("ocioso");
+  const [statusCardapio, setStatusCardapio] = useState("carregando");
+  const [tentativaCardapio, setTentativaCardapio] = useState(0);
   const formularioRef = useRef(null);
   const envioEmAndamento = useRef(false);
   const toastTimerRef = useRef(null);
@@ -63,6 +67,20 @@ function Pedido({ pratosPedido, setPratosPedido }) {
       window.clearTimeout(transicaoTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    buscarPratosApi(controller.signal)
+      .then((catalogo) => {
+        if (controller.signal.aborted) return;
+        setPratosPedido((atuais) => sincronizarPratosPedido(atuais, catalogo));
+        setStatusCardapio("pronto");
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setStatusCardapio("erro");
+      });
+    return () => controller.abort();
+  }, [setPratosPedido, tentativaCardapio]);
 
   function dispensarToast() {
     window.clearTimeout(toastTimerRef.current);
@@ -126,6 +144,7 @@ function Pedido({ pratosPedido, setPratosPedido }) {
 
   async function confirmarPedido(evento) {
     evento.preventDefault();
+    if (statusCardapio !== "pronto") return;
     // A ref bloqueia um segundo envio antes mesmo de o React atualizar a tela.
     if (envioEmAndamento.current || statusEnvio === "sucesso") return;
     const formulario = evento.currentTarget;
@@ -225,7 +244,7 @@ function Pedido({ pratosPedido, setPratosPedido }) {
       onChange={atualizarValidacao}
       noValidate
     >
-      <fieldset className="pedido-secoes" disabled={bloqueado || quantidadeTotal === 0}>
+      <fieldset className="pedido-secoes" disabled={bloqueado || quantidadeTotal === 0 || statusCardapio !== "pronto"}>
         <div className="pedido-card prato-container">
           <div className="pedido-selecao__cabecalho">
             <div className="texto-escolha-pratos">
@@ -308,7 +327,17 @@ function Pedido({ pratosPedido, setPratosPedido }) {
           <strong>Total</strong>
           <strong>{moeda(total)}</strong>
         </div>
-        <button className="resumo-pedido__botao" type="submit" disabled={bloqueado || quantidadeTotal === 0}>
+        {statusCardapio !== "pronto" && (
+          <div role={statusCardapio === "erro" ? "alert" : "status"}>
+            <p>{statusCardapio === "erro" ? "Não foi possível atualizar os preços do cardápio." : "Atualizando os preços do cardápio…"}</p>
+            {statusCardapio === "erro" && (
+              <button type="button" onClick={() => { setStatusCardapio("carregando"); setTentativaCardapio((atual) => atual + 1); }}>
+                Tentar novamente
+              </button>
+            )}
+          </div>
+        )}
+        <button className="resumo-pedido__botao" type="submit" disabled={bloqueado || quantidadeTotal === 0 || statusCardapio !== "pronto"}>
           <span>{textoConfirmar}</span>{statusEnvio === "enviando" && <LoaderCircle className="pedido-carregamento__icone pedido-carregamento__icone--botao" aria-hidden="true" />}
           <span className="resumo-pedido__seta"><ArrowRight aria-hidden="true" /></span>
         </button>
@@ -317,7 +346,7 @@ function Pedido({ pratosPedido, setPratosPedido }) {
             <span>Total · {quantidadeTotal} {quantidadeTotal === 1 ? "item" : "itens"}</span>
             <strong>{moeda(total)}</strong>
           </div>
-          <button className="resumo-pedido__botao" type="submit" disabled={bloqueado || quantidadeTotal === 0}>
+          <button className="resumo-pedido__botao" type="submit" disabled={bloqueado || quantidadeTotal === 0 || statusCardapio !== "pronto"}>
             <span>{statusEnvio === "ocioso" || statusEnvio === "erro" ? "Confirmar" : textoConfirmar}</span>{statusEnvio === "enviando" && <LoaderCircle className="pedido-carregamento__icone pedido-carregamento__icone--botao" aria-hidden="true" />}
             <span className="resumo-pedido__seta"><ArrowRight aria-hidden="true" /></span>
           </button>

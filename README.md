@@ -133,6 +133,8 @@ Na raiz, rode `npm run dev`. O proxy do Vite encaminha `/api` para `http://local
 | GET | `/api/pedidos/{id}` | Dados, valores e status salvos |
 | PATCH | `/api/pedidos/{id}/status` | Atualização do andamento no backend |
 
+O carrinho salvo é sincronizado com o catálogo ao abrir o app e o checkout, atualizando preços e removendo pratos indisponíveis. A confirmação fica bloqueada enquanto a consulta do checkout não terminar; em caso de falha, é possível tentar novamente.
+
 Após confirmar, acesse **Meus pedidos** no menu para reabrir o acompanhamento. O navegador guarda somente os IDs em `localStorage`; cada abertura consulta os detalhes no backend. O acompanhamento consulta novamente a cada 5 segundos até concluir ou cancelar. Em caso de falha, informa que os dados exibidos são da última consulta e permite tentar novamente.
 
 Esse histórico pertence ao navegador atual, sem sincronização entre dispositivos. A URL `/pedido/{id}` também permite abrir um pedido existente diretamente. Pedidos antigos `SIM-...` não existem no banco. Referências reais da antiga sessão são recuperadas quando disponíveis. O status só muda quando atualizado no backend: a interface não inventa progresso nem previsão de entrega.
