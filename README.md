@@ -45,6 +45,30 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | --- | --- |
 | <img src="screenshots/pedido-desktop.png" alt="Checkout com os pratos escolhidos, a forma de receber e o resumo do pedido" width="420"> | <img src="screenshots/meus-pedidos-desktop.png" alt="Página Meus pedidos sem pedidos salvos neste navegador" width="420"> |
 
+## Fluxo do pedido
+
+Depois que o cliente monta o carrinho, o pedido passa por três requisições ao backend em Spring Boot:
+
+| Etapa | Requisição | O que faz |
+| --- | --- | --- |
+| 1. Cardápio | `GET /api/pratos` | Busca os pratos com preço e disponibilidade atualizados |
+| 2. Confirmação | `POST /api/pedidos` | Envia o pedido; o servidor salva e devolve o ID |
+| 3. Acompanhamento | `GET /api/pedidos/{id}` | Consulta o status do pedido a cada 5 segundos |
+
+**1. Confirmação.** Ao clicar em "Confirmar pedido", o site envia o pedido ao backend, mostra o aviso de sucesso e abre os detalhes.
+
+![Aviso "Pedido confirmado" no topo da página e a mensagem "Abrindo os detalhes do pedido…" com um indicador de carregamento](docs/pedido-confirmado.webp)
+
+**2. Acompanhamento.** A página do pedido mostra a referência, os itens e uma linha do tempo com as etapas. O status é consultado de novo a cada 5 segundos, então a etapa avança sozinha quando o restaurante atualiza o pedido no backend.
+
+![Página "Acompanhe seu pedido" com o status "Pedido confirmado", a primeira etapa da linha do tempo destacada e as outras aguardando](docs/acompanhar-pedido-confirmado.webp)
+
+![Mesma página com o status "Em preparo": a etapa Confirmado aparece concluída e a etapa Em preparo está destacada como atual](docs/acompanhar-pedido-em-preparo.webp)
+
+**3. Meus pedidos.** Os pedidos confirmados neste navegador ficam listados, com status, itens, data, total e um botão para voltar ao acompanhamento.
+
+![Página "Meus pedidos" com um pedido confirmado: Brie wrapped in prosciutto & brioche, 2 itens, retirada no bistrô, total de R$ 64,00 e o botão Acompanhar](docs/meus-pedidos.webp)
+
 ## Tecnologias
 
 | Ferramenta | Uso |
@@ -72,21 +96,25 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | Versionamento em grupo | Branches, commits semânticos e Pull Requests no GitHub |
 | Publicação | Vercel |
 
-## Identidade visual
+## Paleta de cores
 
-![Paleta de cores do Appetit](docs/paleta-cores.png)
+![Paleta de cores do Appetit: terracota, bege areia, bege fendi, verde oliva, madeira, marrom escuro e creme, cada uma com o hex, a classe Tailwind e o uso](docs/paleta-appetit.webp)
 
-| Cor | Hex | Uso |
-| --- | --- | --- |
-| Terracota | `#C25A3F` | Destaques: ponto do logo, link ativo, toldo |
-| Bege Areia | `#D9C5B2` | Texto sobre o marrom (header e rodapé) |
-| Bege Fendi | `#A39686` | Apoio |
-| Verde Oliva | `#606C38` | Rótulos das seções |
-| Madeira | `#8B5A2B` | Moldura da janela, hover dos botões |
-| Marrom Escuro | `#4A3728` | Header, rodapé e texto principal |
-| Creme | `#F4EDE4` | Fundo da página |
+| Cor | Hex | Classe Tailwind | Uso |
+| --- | --- | --- | --- |
+| Terracota | `#C25A3F` | `terracota` | Destaques |
+| Bege areia | `#D9C5B2` | `bege-areia` | Texto do header |
+| Bege fendi | `#A39686` | `bege-fendi` | Reserva |
+| Verde oliva | `#606C38` | `verde-oliva` | Rótulos |
+| Madeira | `#8B5A2B` | `madeira` | Molduras, hover |
+| Marrom escuro | `#4A3728` | `marrom-escuro` | Header, texto |
+| Creme | `#F4EDE4` | `creme` | Fundo da página |
 
-**Fontes:** [Oswald](https://fonts.google.com/specimen/Oswald) nos títulos e [DM Sans](https://fonts.google.com/specimen/DM+Sans) nos textos.
+As cores ficam no bloco `@theme` do `src/index.css`, e o Tailwind gera as classes a partir delas (`bg-terracota`, `text-marrom-escuro`...). O código também tem a variante `terracota-escuro` (`#A84A31`), usada em botões com texto branco para manter o contraste.
+
+## Fontes
+
+[Oswald](https://fonts.google.com/specimen/Oswald) nos títulos e [DM Sans](https://fonts.google.com/specimen/DM+Sans) nos textos.
 
 ## Acessibilidade
 
