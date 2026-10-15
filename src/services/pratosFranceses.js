@@ -1,37 +1,7 @@
 import { infoPratos } from "../data/infoPratos.js";
+import { buscarPratosApi } from "./pratosApi.js";
 
-const API_BASE = "https://www.themealdb.com/api/json/v1/1";
-
-const categorias = {
-  Beef: "Carnes",
-  Goat: "Carnes",
-  Lamb: "Carnes",
-  Pork: "Carnes",
-  Pasta: "Massas",
-  Salad: "Saladas",
-  Vegetarian: "Vegetarianos",
-  Vegan: "Vegetarianos",
-  Chicken: "Aves",
-  Seafood: "Peixes",
-  Side: "Acompanhamentos",
-  Starter: "Acompanhamentos",
-  Miscellaneous: "Acompanhamentos",
-  Dessert: "Sobremesas",
-  Breakfast: "Café da manhã",
-};
-
-const precos = {
-  Carnes: 52,
-  Massas: 40,
-  Saladas: 32,
-  Vegetarianos: 42,
-  Aves: 44,
-  Peixes: 49,
-  Acompanhamentos: 32,
-  Sobremesas: 25,
-  "Café da manhã": 28,
-  Outros: 35,
-};
+const MEALDB_URL = "https://www.themealdb.com/api/json/v1/1";
 
 async function buscarJson(url, signal) {
   const resposta = await fetch(url, { signal });
@@ -46,13 +16,12 @@ function resumirReceita(texto, limite = 320) {
 }
 
 export async function buscarPratosFranceses(signal) {
-  const dados = await buscarJson(`${API_BASE}/filter.php?a=France`, signal);
-  const lista = dados.meals ?? [];
+  const pratos = await buscarPratosApi(signal);
 
-  const detalhes = await Promise.all(lista.map(async (prato) => {
+  const detalhes = await Promise.all(pratos.map(async (prato) => {
     try {
       const dadosDetalhe = await buscarJson(
-        `${API_BASE}/lookup.php?i=${prato.idMeal}`,
+        `${MEALDB_URL}/lookup.php?i=${encodeURIComponent(prato.id)}`,
         signal,
       );
       return dadosDetalhe.meals?.[0] ?? null;
@@ -62,17 +31,16 @@ export async function buscarPratosFranceses(signal) {
     }
   }));
 
-  return detalhes.filter(Boolean).map((prato) => {
-    const categoria = categorias[prato.strCategory] ?? "Outros";
+  return pratos.map((prato, indice) => {
+    const receita = detalhes[indice]?.strInstructions;
     return {
-      id: prato.idMeal,
-      nome: prato.strMeal,
-      imagem: prato.strMealThumb,
-      categoria,
-      preco: precos[categoria],
-      // Usa os textos do redesign quando disponíveis, mantendo o ID e preço atuais.
-      descricao: infoPratos[prato.idMeal]?.resumo ?? resumirReceita(prato.strInstructions, 100),
-      instrucoes: resumirReceita(prato.strInstructions),
+      id: prato.id,
+      nome: prato.nome,
+      imagem: prato.imagemUrl,
+      categoria: prato.categoria,
+      preco: prato.precoCentavos / 100,
+      descricao: infoPratos[prato.id]?.resumo ?? resumirReceita(receita, 100),
+      instrucoes: resumirReceita(receita),
     };
   });
 }

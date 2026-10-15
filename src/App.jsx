@@ -9,6 +9,8 @@ import CarregamentoPedido from "./components/CarregamentoPedido";
 // Os detalhes são carregados quando a pessoa chega a essa etapa.
 const DetalhesPedido = lazy(() => import("./pages/DetalhesPedido"));
 import { lerPratosPedidoSalvos, salvarPratosPedido } from "./utils/pratosPedidoStorage";
+import { buscarPratosApi } from "./services/pratosApi";
+import { sincronizarPratosPedido } from "./utils/sincronizarPratosPedido";
 
 function App() {
   // Uma única fonte de estado mantém cabeçalho, catálogo e checkout sincronizados.
@@ -18,12 +20,26 @@ function App() {
     salvarPratosPedido(pratosPedido);
   }, [pratosPedido]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    buscarPratosApi(controller.signal)
+      .then((catalogo) => {
+        if (!controller.signal.aborted) {
+          setPratosPedido((atuais) => sincronizarPratosPedido(atuais, catalogo));
+        }
+      })
+      .catch(() => {
+        // O checkout exige uma nova consulta antes de confirmar o pedido.
+      });
+    return () => controller.abort();
+  }, []);
+
   function alterarQuantidade(prato, variacao) {
     setPratosPedido((atuais) => {
       const existente = atuais.find((item) => item.id === prato.id);
       if (!existente) return variacao > 0 ? [...atuais, { ...prato, quantidade: variacao }] : atuais;
       return atuais.map((item) => item.id === prato.id
-        ? { ...item, quantidade: item.quantidade + variacao } : item,
+        ? { ...item, ...prato, quantidade: item.quantidade + variacao } : item,
       ).filter((item) => item.quantidade > 0);
     });
   }
