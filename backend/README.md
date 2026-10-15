@@ -1,11 +1,12 @@
-# API de pedidos
+# Backend do Appetit
 
-Este backend implementa o fluxo de pedidos do Appetit com Spring Boot, Spring Data JPA e SQLite. A API recebe e valida pedidos, salva os dados confirmados pelo cliente, consulta os detalhes e permite atualizar o status.
+Este backend implementa o cardápio e o fluxo de pedidos do Appetit com Spring Boot, Spring Data JPA e SQLite. A API recebe e valida pedidos, salva os dados confirmados pelo cliente, consulta os detalhes e atualiza o status manual ou automaticamente.
 
 Todos os valores monetários são representados em centavos para evitar erros de arredondamento.
 
 ## O que foi implementado
 
+- cardápio de 28 pratos carregado no SQLite, com consulta apenas dos disponíveis;
 - criação de pedidos com UUID e status inicial `CONFIRMADO`;
 - validação dos dados do cliente, do recebimento e dos itens;
 - consulta dos pratos no banco para confirmar existência, disponibilidade, nome e preço;
@@ -13,31 +14,40 @@ Todos os valores monetários são representados em centavos para evitar erros de
 - taxa de entrega salva no pedido, com valor padrão de `1000` centavos, e retirada sem taxa;
 - persistência do cliente, endereço, itens, observações, datas e status em SQLite;
 - consulta detalhada com subtotal, taxa de entrega e total calculados pelo servidor;
-- atualização manual do status, respeitando a compatibilidade entre entrega e retirada.
+- atualização manual do status, respeitando a compatibilidade entre entrega e retirada;
+- avanço automático dos pedidos em andamento, com etapas diferentes para entrega e retirada.
 
 ## Como o código está organizado
 
 ```mermaid
 flowchart LR
-    A[Cliente HTTP] --> B[PedidosController]
-    B --> C[PedidosService]
-    C --> D[PratosRepository]
-    C --> E[PedidosRepository]
-    D --> F[(SQLite)]
+    A[Cliente HTTP] --> B[PratosController]
+    A --> C[PedidosController]
+    B --> D[PratosService]
+    C --> E[PedidosService]
+    D --> F[PratosRepository]
     E --> F
+    E --> G[PedidosRepository]
+    S[PedidosStatusScheduler] --> G
+    F --> H[(SQLite)]
+    G --> H
 ```
 
-- `PedidosController` define as rotas HTTP e os códigos de resposta.
+- `PratosController` e `PedidosController` definem as rotas HTTP e os códigos de resposta.
 - Os DTOs definem os contratos JSON de entrada e saída.
+- `PratosService` consulta e filtra o cardápio disponível.
 - `PedidosService` concentra validações, regras de negócio e cálculos.
 - `PratosRepository` consulta o cardápio para validar os itens.
 - `PedidosRepository` salva e consulta os pedidos.
+- `PedidosStatusScheduler` avança os status quando o tempo configurado para cada etapa termina.
 - `Pedido` agrega `Cliente`, `Recebimento`, `Endereco` e uma coleção de `ItemPedido`.
 
 ## Endpoints
 
 | Método | Rota | Resultado |
 | --- | --- | --- |
+| `GET` | `/api/pratos` | Lista os pratos disponíveis com os preços do banco |
+| `GET` | `/api/pratos/{id}` | Consulta um prato disponível |
 | `POST` | `/api/pedidos` | Valida e salva um pedido; responde `201` com o ID |
 | `GET` | `/api/pedidos/{id}` | Retorna os dados completos, o status e os totais |
 | `PATCH` | `/api/pedidos/{id}/status` | Atualiza o status e retorna o ID e o novo status |
@@ -113,7 +123,16 @@ Status aceitos:
 - `CONCLUIDO`;
 - `CANCELADO`.
 
-`PRONTO_PARA_RETIRADA` só é compatível com retirada, enquanto `SAIU_PARA_ENTREGA` só é compatível com entrega. A API não impõe uma ordem entre os demais status e não faz o avanço automático.
+`PRONTO_PARA_RETIRADA` só é compatível com retirada, enquanto `SAIU_PARA_ENTREGA` só é compatível com entrega. O `PATCH` não impõe uma ordem entre os demais status. Há também avanço automático no backend, descrito abaixo.
+
+### Avanço automático
+
+Por padrão, o agendador consulta os pedidos em andamento a cada 5 segundos e avança uma etapa depois de pelo menos 20 segundos no status atual:
+
+- entrega: `CONFIRMADO` → `EM_PREPARO` → `SAIU_PARA_ENTREGA` → `CONCLUIDO`;
+- retirada: `CONFIRMADO` → `EM_PREPARO` → `PRONTO_PARA_RETIRADA` → `CONCLUIDO`.
+
+O agendador não avança pedidos `CONCLUIDO` ou `CANCELADO`. Para pedidos antigos sem data da última mudança de status, ele inicia o relógio na primeira verificação. As propriedades `appetit.status-automatico.habilitado`, `appetit.status-automatico.segundos-por-etapa` e `appetit.status-automatico.intervalo-ms` em `application.properties` controlam esse comportamento. Após cada consulta bem-sucedida, o frontend agenda outro `GET /api/pedidos/{id}` para 5 segundos depois, enquanto o pedido está em andamento.
 
 ## Validações e respostas de erro
 
@@ -140,9 +159,11 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-A API usa `http://localhost:8080` por padrão. O SQLite grava em `appetit.db`; outro caminho pode ser definido com a variável `APPETIT_DB_PATH`.
+A API usa `http://localhost:8080` por padrão. Ao iniciar pela pasta `backend`, o SQLite cria `backend/appetit.db`, o JPA cria as tabelas e `data.sql` cadastra os 28 pratos sem sobrescrever preços já editados. Outro caminho para o banco pode ser definido com a variável `APPETIT_DB_PATH`.
 
 A taxa de entrega é configurada por `appetit.taxa-entrega-centavos` em `application.properties`.
+
+Com a dependência Springdoc configurada em `pom.xml`, a documentação interativa fica em `http://localhost:8080/swagger-ui/index.html` e o documento OpenAPI em `http://localhost:8080/v3/api-docs`.
 
 O frontend usa `/api` e o proxy do Vite encaminha as chamadas para `http://localhost:8080` no desenvolvimento e no preview. Em produção, configure esse encaminhamento no host ou autorize a origem do frontend no CORS do backend se usar uma URL separada.
 
@@ -153,25 +174,27 @@ cd backend
 ./mvnw test
 ```
 
-A suíte atual executa seis testes e cobre:
+A suíte atual contém 21 testes e cobre:
 
 - inicialização da aplicação;
 - carga dos 28 pratos no SQLite;
 - endpoints de consulta do cardápio;
-- persistência e leitura de um pedido;
+- persistência, validações e leitura de pedidos;
+- `GET` e `PATCH` de pedidos via HTTP, inclusive respostas de erro;
+- avanço automático e persistência do novo status;
 - contrato JSON enviado pelo frontend;
 - serialização da resposta com o ID criado.
 
-Os testes atuais não exercitam diretamente os endpoints de pedidos (`POST`, `GET` e `PATCH`) nem todas as falhas de validação via HTTP.
+O `POST /api/pedidos` é coberto pela camada de serviço e pelo contrato JSON, mas ainda não há um teste HTTP direto dessa rota. Nem todas as falhas de validação são testadas via HTTP.
 
 ## Explicação em 2 minutos
 
-> Este commit adiciona ao Appetit uma API real de pedidos em Java com Spring Boot, JPA e SQLite. Antes, o frontend apenas simulava o envio. Agora o backend consegue receber um pedido, validar os dados, salvá-lo e devolver um identificador único.
+> O Appetit tem uma API de cardápio e pedidos em Java com Spring Boot, JPA e SQLite. O cardápio é carregado no banco e o backend recebe, valida e salva pedidos, devolvendo um identificador único.
 >
 > O fluxo começa no endpoint POST `/api/pedidos`. Ele recebe os dados do cliente, a opção de entrega ou retirada, os itens e as observações. A camada de serviço verifica nome, telefone e e-mail, exige endereço e CEP quando for entrega e garante que exista pelo menos um item, com quantidade positiva e sem pratos repetidos.
 >
 > Um cuidado importante é que o backend não aceita nome ou preço enviados pelo navegador. Ele procura cada prato no banco, confirma que está disponível e usa o preço cadastrado no servidor. O nome e o preço são copiados para o pedido. Assim, o valor confirmado continua o mesmo mesmo que o cardápio mude depois. Para entrega, a taxa configurada também é salva; para retirada, ela fica zerada.
 >
-> Em seguida, o pedido é persistido com um UUID, a data de criação e o status inicial `CONFIRMADO`. O endpoint GET `/api/pedidos/{id}` devolve os detalhes e calcula subtotal, taxa e total em centavos, evitando problemas de arredondamento. Já o PATCH `/api/pedidos/{id}/status` atualiza o andamento e impede, por exemplo, usar `SAIU_PARA_ENTREGA` em uma retirada ou `PRONTO_PARA_RETIRADA` em uma entrega.
+> Em seguida, o pedido é persistido com um UUID, a data de criação e o status inicial `CONFIRMADO`. O endpoint GET `/api/pedidos/{id}` devolve os detalhes e calcula subtotal, taxa e total em centavos, evitando problemas de arredondamento. O PATCH `/api/pedidos/{id}/status` permite uma atualização manual compatível com entrega ou retirada. Um agendador também avança automaticamente os pedidos em andamento, enquanto o frontend consulta o status salvo a cada 5 segundos.
 >
-> A implementação foi separada em controller, DTOs, service, entidades e repositories. Por fim, seis testes verificam a inicialização, o banco SQLite, o cardápio, a persistência e o contrato JSON esperado pelo frontend.
+> A implementação foi separada em controllers, DTOs, services, entidades, repositories e agendador. Os 21 testes cobrem a inicialização, o banco SQLite, o cardápio, a persistência, as consultas, a atualização de status e o contrato JSON esperado pelo frontend.
