@@ -188,6 +188,10 @@ Esse histórico pertence ao navegador atual, sem sincronização entre dispositi
 | --- | --- |
 | Ryan Alves | [@s3vla](https://github.com/s3vla) |
 | Alexandre Wayss | [@alexandre-wayss](https://github.com/alexandre-wayss) |
+| Valter Glitz | [@Darkalli](https://github.com/Darkalli) |
+| Leonardo Bimmel | [@bimmelleo](https://github.com/bimmelleo) |
+| Giandro Raugust | [@TwiceKJ](https://github.com/TwiceKJ) |
+| Rodrigo Walter | [@RodrigoPWalter](https://github.com/RodrigoPWalter) |
 
 ## Créditos
 
